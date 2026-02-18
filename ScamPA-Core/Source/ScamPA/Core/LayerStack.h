@@ -21,6 +21,8 @@ namespace SPA {
 		
 		void PopLayer(const std::shared_ptr<ILayer>& a_target_layer);
 
+		void PopAll();
+
 		// Regular & reverse iterated vectors
 		std::vector<std::shared_ptr<ILayer>>::iterator begin()						{ return m_layers.begin(); }
 		std::vector<std::shared_ptr<ILayer>>::iterator end()						{ return m_layers.end(); }

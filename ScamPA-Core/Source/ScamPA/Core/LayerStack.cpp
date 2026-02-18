@@ -7,13 +7,8 @@ namespace SPA {
 	}
 	
 	CLayerStack::~CLayerStack() {
-		for (auto& layer : m_layers) {
-			layer->OnDetach();
-		}
-		m_layers.clear();
+		PopAll();
 	}
-
-	
 
 	void CLayerStack::PushLayer(const std::shared_ptr<ILayer>& a_layer) {
 		m_layers.emplace_back(a_layer);
@@ -32,5 +27,12 @@ namespace SPA {
 				m_layer_insert_index--;
 			}
 		}
+	}
+
+	void CLayerStack::PopAll() {
+		for (auto& layer : m_layers) {
+			layer->OnDetach();
+		}
+		m_layers.clear();
 	}
 }

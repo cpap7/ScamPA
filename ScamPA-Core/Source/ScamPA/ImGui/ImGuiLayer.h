@@ -7,7 +7,7 @@ namespace SPA {
 	// Handles majority of the ImGui setup for Vulkan
 	class CImGuiLayer : public ILayer {
 	private:
-		bool m_block_events = true;
+		bool m_is_blocking_events = true;
 
 		// UI callbacks
 		std::function<void()> m_menubar_callback;
@@ -26,17 +26,15 @@ namespace SPA {
 		void EndFrame();
 		void RenderDockspace();
 
-		void SetDarkThemeColors();
-		
-		uint32_t GetActiveWidgetID() const;
-
 		// Getters
-		inline bool IsBlockingEvents()						{ return m_block_events;		}
+		uint32_t GetActiveWidgetID() const;
+		inline bool IsBlockingEvents()						{ return m_is_blocking_events;	}
 		inline std::function<void()> GetMenubarCallback()	{ return m_menubar_callback;	}
 
 		// Setters
-		inline void SetBlockEvents(bool a_block_events_flag)							{ m_block_events = a_block_events_flag;		}
-		inline void SetMenubarCallback(const std::function<void()> a_menubar_callback)	{ m_menubar_callback = a_menubar_callback;	}
+		void SetDarkThemeColors();
+		inline void SetBlockEvents(bool a_block_events_flag)							{ m_is_blocking_events = a_block_events_flag;	}
+		inline void SetMenubarCallback(const std::function<void()> a_menubar_callback)	{ m_menubar_callback = a_menubar_callback;		}
 	};
 }
 

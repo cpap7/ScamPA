@@ -12,7 +12,6 @@
 #include <ScamPA/Core/Application.h>
 //#include <ScamPA/Core/Logger.h>
 #include <ScamPA/Core/Layer.h>
-//#include <ScamPA/Core/Timestep.h>
 
 // Input
 #include <ScamPA/Input/Input.h>
@@ -20,7 +19,6 @@
 // Utilities
 #include <ScamPA/Utilities/Timer.h>
 #include <ScamPA/Utilities/Random.h>
-
 
 // Events
 #include <ScamPA/Events/Event.h>

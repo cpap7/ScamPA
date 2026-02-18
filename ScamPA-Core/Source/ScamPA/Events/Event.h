@@ -82,7 +82,7 @@ namespace SPA {
 		return a_os << a_event.ToString();
 	}
 
-	// Specialize fmt::formatter for Event types outside the SAGE namespace
+	// Specialize fmt::formatter for Event types outside the SPA namespace
 	template<typename T>
 	struct fmt::formatter<T, std::enable_if_t<std::is_base_of<IEvent, T>::value, char>> : fmt::formatter<std::string> {
 		auto format(const T& a_event, fmt::format_context& a_ctx) const {

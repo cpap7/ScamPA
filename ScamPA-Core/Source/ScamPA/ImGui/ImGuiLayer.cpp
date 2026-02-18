@@ -111,7 +111,7 @@ namespace SPA {
 	}
 	
 	void CImGuiLayer::OnEvent(IEvent& a_event) {
-		if (m_block_events) {
+		if (m_is_blocking_events) {
 			ImGuiIO& io = ImGui::GetIO();
 
 			// Block mouse events if ImGui wants to capture the mouse
@@ -197,6 +197,10 @@ namespace SPA {
 		}
 
 		ImGui::End();
+	}
+	
+	uint32_t CImGuiLayer::GetActiveWidgetID() const {
+		return GImGui->ActiveId;
 	}
 
 	void CImGuiLayer::SetDarkThemeColors() {
@@ -303,7 +307,5 @@ namespace SPA {
 		style.ScrollbarSize = 14.0f;
 	}
 
-	uint32_t CImGuiLayer::GetActiveWidgetID() const {
-		return GImGui->ActiveId;
-	}
+
 }

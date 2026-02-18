@@ -39,8 +39,6 @@ namespace SPA {
 
 	class CApplication {
 	private:
-		// UI callback
-		std::function<void()> m_menubar_callback;
 		
 		// Resolution, title, args
 		SApplicationSpecification m_specification;
@@ -83,13 +81,15 @@ namespace SPA {
 		inline CRenderer& GetRenderer() const	{ return *m_renderer;		}
 		
 		// Setters
-		inline void SetMenubarCallback(const std::function<void()>& menubarCallback) { m_menubar_callback = menubarCallback; }
+		void SetMenubarCallback(const std::function<void()>& a_menubar_callback);
 		
 	private:
 		// Helpers
+		void RenderImGui();
+		void RenderVulkan();
 		void Init();
 		void Shutdown();
-		void RenderUI();
+		
 
 		// Event handling helpers
 		void OnEvent(IEvent& a_event);

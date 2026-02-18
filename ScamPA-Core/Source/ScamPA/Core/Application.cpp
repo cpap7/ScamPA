@@ -29,8 +29,6 @@ namespace SPA {
 		s_instance = nullptr;
 	}
 
-
-
 	void CApplication::Run() {
 		m_is_running = true;
 		
@@ -43,28 +41,24 @@ namespace SPA {
 				continue; // Skip frames when minimized
 			}
 
-
-			// Update layers
+			// Update layer logic (per frame)
 			for (auto& layer : m_layer_stack) {
 				layer->OnUpdate(m_timestep);
 			}
 
-			// Handle resize events
+			// Handle resize events (if needed)
 			if (m_swapchain->NeedsRebuild()) {
 				int width, height;
 				m_window_handle->GetFramebufferSize(&width, &height);
+				
 				if (width > 0 && height > 0) {
 					SPA_CORE_INFO("(Application) Rebuilding swapchain ({0} x {1})", width, height);
 					m_swapchain->Resize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
 				}
 			}
-			m_imgui_layer->Begin(); 			// ImGui layer must call "Begin" method before any additional ImGui calls are made
-			RenderUI(); 						// Render all UI (i.e., dockspace + layer UI)
-			m_imgui_layer->End(); 				// End ImGui frame to prepare ImGui draw data
-
-			m_renderer->BeginFrame(); 			// Begin Vulkan rendering -- acquires images, begins render pass
-			m_renderer->EndFrame(); 			// End frame -- records draw data & presents frame
-
+			RenderImGui();
+			RenderVulkan();
+			
 			// Update frame time
 			float time = GetTime();
 			m_frame_time = time - m_last_frame_time;
@@ -84,6 +78,28 @@ namespace SPA {
 
 	float CApplication::GetTime() {
 		return (float)glfwGetTime();
+	}
+
+	void CApplication::SetMenubarCallback(const std::function<void()>& a_menubar_callback) {
+		m_imgui_layer->SetMenubarCallback(a_menubar_callback);
+	}
+
+	void CApplication::RenderImGui() {
+		m_imgui_layer->BeginFrame(); 			// ImGui layer must call "BeginFrame" method before any additional ImGui calls are made
+		m_imgui_layer->RenderDockspace();
+
+		// Render all layers' UI
+		for (auto& layer : m_layer_stack) {
+			layer->OnUIRender();
+		}
+
+		m_imgui_layer->EndFrame(); 			// End ImGui frame to prepare ImGui draw data
+
+	}
+
+	void CApplication::RenderVulkan() {
+		m_renderer->BeginFrame(); 			// Begin Vulkan rendering -- acquires images, begins render pass
+		m_renderer->EndFrame(); 			// End frame -- records draw data & presents frame
 	}
 
 	void CApplication::Init() {
@@ -147,75 +163,22 @@ namespace SPA {
 				SPA_CORE_ERROR("(Application) Failed to wait for device idle during shutdown!");
 			}
 		}
-		// Destroy renderer & swapchain
+		// Destroy renderer & swapchain - smart ptrs
 		m_renderer.reset();
 		m_swapchain.reset();
 
 		// Detach layers
-		for (auto& layer : m_layer_stack) {
-			layer->OnDetach();
-		}
-		m_layer_stack = CLayerStack(); // Clear stack
-
+		m_layer_stack.PopAll();
+	
 		// Additional cleanup
-		m_graphics_context->Shutdown();
-		m_window_handle->Shutdown();
+		if (m_graphics_context) {
+			m_graphics_context->Shutdown();
+		}
+		if (m_window_handle) {
+			m_window_handle->Shutdown();
+		}
 
 		SPA_CORE_INFO("(Application) Shutdown complete!");
-	}
-
-	void CApplication::RenderUI() {
-		// Setup dockspace
-		static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
-
-		if (m_menubar_callback) { 
-			window_flags |= ImGuiWindowFlags_MenuBar;
-		}
-
-		// Make dockspace cover entire viewport
-		const ImGuiViewport* viewport = ImGui::GetMainViewport();
-		ImGui::SetNextWindowPos(viewport->WorkPos);
-		ImGui::SetNextWindowSize(viewport->WorkSize);
-		ImGui::SetNextWindowViewport(viewport->ID);
-
-		// Style the window to be invisible
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-
-		window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
-		window_flags |= ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-		window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-
-		if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-			window_flags |= ImGuiWindowFlags_NoBackground;
-
-		// Begin dockspace window
-		ImGui::Begin("DockSpace", nullptr, window_flags);
-		ImGui::PopStyleVar(3);
-
-		// Submit the DockSpace
-		ImGuiIO& io = ImGui::GetIO();
-		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
-			ImGuiID dockspace_id = ImGui::GetID("ScamPADockspace");
-			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-		}
-
-		// Render menu bar
-		if (m_menubar_callback) {
-			if (ImGui::BeginMenuBar()) {
-				m_menubar_callback();
-				ImGui::EndMenuBar();
-			}
-		}
-
-		// Render all layers' UI
-		for (auto& layer : m_layer_stack) {
-			layer->OnUIRender();
-		}
-
-		ImGui::End();
 	}
 
 	void CApplication::OnEvent(IEvent& a_event) {
@@ -245,7 +208,7 @@ namespace SPA {
 		}
 		m_is_minimized = false;
 
-		if (width > 0 && height > 0) {
+		if (width > 0 && height > 0) { // Update rebuild flag
 			m_swapchain->SetNeedsRebuild(true);
 		}
 

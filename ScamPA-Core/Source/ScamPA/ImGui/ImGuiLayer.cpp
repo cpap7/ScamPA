@@ -122,13 +122,13 @@ namespace SPA {
 		}
 	}
 
-	void CImGuiLayer::Begin() {
+	void CImGuiLayer::BeginFrame() {
 		ImGui_ImplVulkan_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 	}
 
-	void CImGuiLayer::End() {
+	void CImGuiLayer::EndFrame() {
 		// Setup display size
 		ImGuiIO& io = ImGui::GetIO();
 		CApplication& application = CApplication::GetApplicationInstance();
@@ -148,6 +148,55 @@ namespace SPA {
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
 		}
+	}
+
+	void CImGuiLayer::RenderDockspace() {
+		// Setup dockspace
+		static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
+
+		if (m_menubar_callback) {
+			window_flags |= ImGuiWindowFlags_MenuBar;
+		}
+
+		// Make dockspace cover entire viewport
+		const ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImGui::SetNextWindowPos(viewport->WorkPos);
+		ImGui::SetNextWindowSize(viewport->WorkSize);
+		ImGui::SetNextWindowViewport(viewport->ID);
+
+		// Style the window to be invisible
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
+		window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
+		window_flags |= ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+		window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+
+		if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+			window_flags |= ImGuiWindowFlags_NoBackground;
+
+		// Begin dockspace window
+		ImGui::Begin("DockSpace", nullptr, window_flags);
+		ImGui::PopStyleVar(3);
+
+		// Submit the DockSpace
+		ImGuiIO& io = ImGui::GetIO();
+		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
+			ImGuiID dockspace_id = ImGui::GetID("ScamPADockspace");
+			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+		}
+
+		// Render menu bar
+		if (m_menubar_callback) {
+			if (ImGui::BeginMenuBar()) {
+				m_menubar_callback();
+				ImGui::EndMenuBar();
+			}
+		}
+
+		ImGui::End();
 	}
 
 	void CImGuiLayer::SetDarkThemeColors() {

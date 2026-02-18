@@ -1,6 +1,6 @@
 # ScamPA - The Scam Preventing Agent
 ScamPA is a simple C++ application designed with the purpose of being able to hinder the possibility of potential scams by utilizing ML bots to automate calls with malicious telemarketers.
-This application currently a work-in-progress and only supports Windows - with macOS and Linux support planned. Setup scripts support Visual Studio 2022 by default.
+This application is currently a work-in-progress and only supports Windows - with macOS and Linux support planned. Setup scripts support Visual Studio 2022 by default.
 
 The application framework itself is essentially a heavily modified version of the [Walnut](https://github.com/StudioCherno/Walnut) framework.
 
@@ -28,7 +28,7 @@ Once you've cloned, run `Scripts/Setup.bat` to generate Visual Studio 2022 solut
 (included for convenience)
 
 #### Future libraries to be added
-- [LlamaLib](https://github.com/undreamai/LlamaLib) - A high-level wrapper for [llama.cpp](https://github.com/ggml-org/llama.cpp)
+- [LlamaLib](https://github.com/undreamai/LlamaLib) - A high-level wrapper for [llama.cpp](https://github.com/ggml-org/llama.cpp), which is an inferencing engine for LLMs
 - [whisper.cpp](https://github.com/ggml-org/whisper.cpp) - Audio transcription library
 
 ## Additional

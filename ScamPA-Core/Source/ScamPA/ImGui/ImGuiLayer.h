@@ -28,13 +28,13 @@ namespace SPA {
 
 		// Getters
 		uint32_t GetActiveWidgetID() const;
-		inline bool IsBlockingEvents()						{ return m_is_blocking_events;	}
-		inline std::function<void()> GetMenubarCallback()	{ return m_menubar_callback;	}
+		inline bool IsBlockingEvents() const							{ return m_is_blocking_events;	}
+		inline const std::function<void()>& GetMenubarCallback() const	{ return m_menubar_callback;	}
 
 		// Setters
 		void SetDarkThemeColors();
 		inline void SetBlockEvents(bool a_block_events_flag)							{ m_is_blocking_events = a_block_events_flag;	}
-		inline void SetMenubarCallback(const std::function<void()> a_menubar_callback)	{ m_menubar_callback = a_menubar_callback;		}
+		inline void SetMenubarCallback(const std::function<void()>& a_menubar_callback)	{ m_menubar_callback = a_menubar_callback;		}
 	};
 }
 

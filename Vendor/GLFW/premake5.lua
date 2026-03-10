@@ -52,6 +52,7 @@ project "GLFW"
 
 	filter "system:windows"
 		systemversion "latest"
+		toolset "v145" -- VS 2026
 
 		files
 		{

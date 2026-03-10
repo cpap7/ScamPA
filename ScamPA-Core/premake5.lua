@@ -37,6 +37,7 @@ project "ScamPA-Core"
 
    filter "system:windows"
       systemversion "latest"
+      toolset "v145" -- VS 2026
       defines { "SPA_PLATFORM_WINDOWS" }
 
    filter "configurations:Debug"

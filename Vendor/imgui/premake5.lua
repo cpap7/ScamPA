@@ -24,6 +24,7 @@ project "ImGui"
 	filter "system:windows"
 		systemversion "latest"
 		cppdialect "C++17"
+        toolset "v145" -- VS 2026
 
 	filter "system:linux"
 		pic "On"

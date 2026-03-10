@@ -8,16 +8,14 @@ The application framework itself is essentially a heavily modified version of th
 _<center>Forest Launcher - an application made with Walnut</center>_
 
 ## Requirements
-- [Visual Studio 2022](https://visualstudio.com) (not strictly required, however included setup scripts only support this)
-    - Note: For Visual Studio 2026, you can simply retarget the project files after running initial build scripts.
-    - To do this in Visual Studio 2026, simply go: Project > Retarget Solution, then hit "Retarget all" and "Apply"
-    - We aim to update the premake5 binary included within this repo once it has been updated to support Visual Studio 2026.
+- [Visual Studio 2026](https://visualstudio.com) (not strictly required, however included setup scripts only support this)
+    - Note: For Visual Studio 2022 or lower, you'll need to either comment out the `toolset "v145"` line within each premake scripts, or update them according to your current toolset version 
 
 - [Vulkan SDK](https://vulkan.lunarg.com/sdk/home#windows) (version 1.3.283.0)
     - Will be installed for you upon running `Setup.bat`
 
 ## Getting Started
-Once you've cloned, run `Scripts/Setup.bat` to generate Visual Studio 2022 solution/project files. Once you've opened the solution, you can run the ScamPA-App project to how it works (code in `ScamPAApp.cpp`). 
+Once you've cloned, run `Scripts/Setup.bat` to generate Visual Studio solution & project files. Once you've opened the solution, you can run the ScamPA-App project to how it works (code in `ScamPAApp.cpp`). 
 
 ### 3rd party libaries
 - [Dear ImGui](https://github.com/ocornut/imgui) - Bloat-free, immediate-mode graphical user interface library 

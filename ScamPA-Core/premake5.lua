@@ -10,26 +10,37 @@ project "ScamPA-Core"
    files 
    { 
         "Source/**.h", 
-	    "Source/**.cpp"	
+        "Source/**.cpp"	
    }
 
    includedirs
    {
-      "Source",
-      "%{IncludeDir.VulkanSDK}",
-      "%{IncludeDir.glm}",
-	  "%{IncludeDir.glfw}",
-      "%{IncludeDir.imgui}",
-      "%{IncludeDir.stb_image}",
-	  "%{IncludeDir.spdlog}"
+        "Source",
+        "%{IncludeDir.VulkanSDK}",
+        "%{IncludeDir.glm}",
+        "%{IncludeDir.glfw}",
+        "%{IncludeDir.imgui}",
+        "%{IncludeDir.stb_image}",
+        "%{IncludeDir.spdlog}",
+
+        -- VoxBoxSDK
+        "%{IncludeDir.VoxBoxCommon}",
+        "%{IncludeDir.VoxBoxSTT}",
+        "%{IncludeDir.VoxBoxTTS}",
+        "%{IncludeDir.VoxBoxLLM}",
    }
 
    links
    {
-       "ImGui",
-       "GLFW",
+        "ImGui",
+        "GLFW",
 
-       "%{Library.Vulkan}",
+        "%{Library.Vulkan}",
+
+        -- VoxBoxSDK
+        "VoxBox-WhisperAPI",
+        "VoxBox-PiperAPI",
+        "VoxBox-LlamaAPI",
    }
 
    targetdir ("bin/" .. outputdir .. "/%{prj.name}")

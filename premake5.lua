@@ -7,4 +7,3 @@ workspace "ScamPA"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 include "ScamPAExternal.lua"
-include "ScamPA-App"

@@ -15,3 +15,6 @@
 [submodule "vendor/GLFW"]
 	path = vendor/GLFW
 	url = https://github.com/TheCherno/GLFW
+[submodule "Vendor/VoxBoxSDK"]
+	path = Vendor/VoxBoxSDK
+	url = https://github.com/cpap7/VoxBoxSDK

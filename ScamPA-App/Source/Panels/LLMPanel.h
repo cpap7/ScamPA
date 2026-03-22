@@ -1,6 +1,8 @@
 #pragma once
 #include <ScamPA/Core/Panel.h>
-#include "../AIAgentContext.h"
+#include <ScamPA/Audio/AudioDevice.h>
+
+#include "../AIAgent/AIAgentContext.h"
 
 #include <string>
 #include <vector>

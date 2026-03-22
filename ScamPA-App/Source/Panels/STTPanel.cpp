@@ -27,12 +27,11 @@ namespace SPA {
 
 	void CSTTPanel::OnInit() {
 		SAudioDeviceConfig config;
-		config.m_sample_rate = 16000; // whisper.cpp default
-		config.m_channels = 1;
-		config.m_sample_format = EAudioSampleFormat::Int16;
-		//config.m_device_type = EAudioDeviceType::Capture; // Get from microphone
-		config.m_device_type = EAudioDeviceType::Loopback; // Get audio from speakers
-
+		config.m_sample_rate	= 16000; // whisper.cpp default
+		config.m_channels		= 1;
+		config.m_sample_format	= EAudioSampleFormat::Int16;
+		config.m_device_type	= m_selected_device_type; // Default = loopback (audio from speakers0
+		
 		m_audio_input_device = IAudioDevice::Create(config);
 		
 		RefreshDeviceList();
@@ -65,10 +64,67 @@ namespace SPA {
 			return;
 		}
 
+		ImGui::Text("Device Settings");
+		
+		{ // Device type selection
+			static const char* device_type_labels[] = {
+				"Capture",
+				"Loopback"
+			};
+			
+			static const EAudioDeviceType device_type_values[] = {
+				EAudioDeviceType::Capture,
+				EAudioDeviceType::Loopback
+			};
+
+			constexpr uint32_t device_type_count = 2;
+
+			// Find current index for preview
+			uint32_t current_index = 0;
+			for (uint32_t i{}; i < device_type_count; ++i) {
+				if (device_type_values[i] == m_selected_device_type) {
+					current_index = i;
+					break;
+				}
+			}
+
+
+			if (m_is_recording) {
+				ImGui::BeginDisabled();
+			}
+
+			ImGui::SetNextItemWidth(-1);
+			if (ImGui::BeginCombo("Device Type", device_type_labels[current_index])) {
+				for (uint32_t i{}; i < 2; ++i) {
+					bool is_selected = (device_type_values[i] == m_selected_device_type);
+					
+					if (ImGui::Selectable(device_type_labels[i], is_selected)) {
+						if (device_type_values[i] != m_selected_device_type) {
+							// Update internal value, then refresh
+							m_selected_device_type = device_type_values[i]; 
+							Reinit();
+						}
+					}
+
+					if (is_selected) {
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+				ImGui::EndCombo();
+			}
+
+			if (m_is_recording) {
+				ImGui::EndDisabled();
+			}
+		}
+		
+		
+
 		{ // Input device selection
 			const char* preview = "System Default";
-			if (m_selected_device_index >= 0 && m_selected_device_index < static_cast<int32_t>(m_device_list.size())) {
-				preview = m_device_list[m_selected_device_index].m_name.c_str();
+			if ((m_device_settings.m_selected_device_index >= 0) && 
+				(m_device_settings.m_selected_device_index < static_cast<int32_t>(m_device_settings.m_device_list.size()))) {
+				preview = m_device_settings.m_device_list[m_device_settings.m_selected_device_index].m_name.c_str();
 			}
 
 			if (m_is_recording) { // Do not allow changes while recording
@@ -78,10 +134,10 @@ namespace SPA {
 			ImGui::SetNextItemWidth(-1);
 			if (ImGui::BeginCombo("Input Device", preview)) {
 				// First entry = "System Default"
-				bool is_default_selected = (m_selected_device_index == -1);
+				bool is_default_selected = (m_device_settings.m_selected_device_index == -1);
 				if (ImGui::Selectable("System Default", is_default_selected)) {
-					if (m_selected_device_index != -1) {
-						m_selected_device_index = -1;
+					if (m_device_settings.m_selected_device_index != -1) {
+						m_device_settings.m_selected_device_index = -1;
 
 						if (m_audio_input_device) {
 							m_audio_input_device->SetDeviceByIndex(-1);
@@ -89,16 +145,16 @@ namespace SPA {
 					}
 				}
 
-				for (int32_t i{}; i < static_cast<int32_t>(m_device_list.size()); ++i) {
-					const auto& info = m_device_list[i];
-					bool is_selected = (m_selected_device_index == i);
+				for (int32_t i{}; i < static_cast<int32_t>(m_device_settings.m_device_list.size()); ++i) {
+					const auto& info = m_device_settings.m_device_list[i];
+					bool is_selected = (m_device_settings.m_selected_device_index == i);
 
 					// Label default devices within the list
 					std::string label = info.m_is_default ? info.m_name + " (Default)" : info.m_name;
 
 					if (ImGui::Selectable(label.c_str(), is_selected)) {
-						if (m_selected_device_index != i) {
-							m_selected_device_index = i;
+						if (m_device_settings.m_selected_device_index != i) {
+							m_device_settings.m_selected_device_index = i;
 							if (m_audio_input_device) {
 								m_audio_input_device->SetDeviceByIndex(info.m_index);
 							}
@@ -159,16 +215,21 @@ namespace SPA {
 
 	void CSTTPanel::RefreshDeviceList() {
 		if (m_audio_input_device) {
-			m_device_list = m_audio_input_device->GetDeviceList();
-			m_selected_device_index = -1; // Reset to system default on refresh
+			m_device_settings.m_device_list = m_audio_input_device->GetDeviceList();
+			m_device_settings.m_selected_device_index = -1; // Reset to system default on refresh
 
 			// Auto select current default
-			for (int32_t i{}; i < static_cast<int32_t>(m_device_list.size()); ++i) {
-				if (m_device_list[i].m_is_default) {
-					m_selected_device_index = i;
+			for (int32_t i{}; i < static_cast<int32_t>(m_device_settings.m_device_list.size()); ++i) {
+				if (m_device_settings.m_device_list[i].m_is_default) {
+					m_device_settings.m_selected_device_index = i;
 					break;
 				}
 			}
 		}
+	}
+
+	void CSTTPanel::Reinit() {
+		OnShutdown();
+		OnInit();
 	}
 }

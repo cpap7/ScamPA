@@ -46,6 +46,7 @@ namespace SPA {
 		ImGui::InputTextMultiline("##tts_text", m_text_buffer, sizeof(m_text_buffer), ImVec2(-1, 100));
 
 		ImGui::Separator();
+		ImGui::Text("Voice Settings");
 
 		if (ImGui::SliderFloat("Verbal Delay", &m_verbal_delay, 0.5f, 2.0f, "%.2f")) {
 			tts_engine->SetSpeed(m_verbal_delay);
@@ -53,19 +54,21 @@ namespace SPA {
 
 		ImGui::Separator();
 
+		ImGui::Text("Device Settings");
+
 		{ // Output device selection
 			const char* preview = "System Default";
-			if (m_selected_device_index >= 0 && m_selected_device_index < static_cast<int32_t>(m_device_list.size())) {
-				preview = m_device_list[m_selected_device_index].m_name.c_str();
+			if ((m_device_settings.m_selected_device_index >= 0) && (m_device_settings.m_selected_device_index < static_cast<int32_t>(m_device_settings.m_device_list.size()))) {
+				preview = m_device_settings.m_device_list[m_device_settings.m_selected_device_index].m_name.c_str();
 			}
 
 			ImGui::SetNextItemWidth(-1);
 			if (ImGui::BeginCombo("Output Device", preview)) {
 				// First entry = "System Default"
-				bool is_default_selected = (m_selected_device_index == -1);
+				bool is_default_selected = (m_device_settings.m_selected_device_index == -1);
 				if (ImGui::Selectable("System Default", is_default_selected)) {
-					if (m_selected_device_index != -1) {
-						m_selected_device_index = -1;
+					if (m_device_settings.m_selected_device_index != -1) {
+						m_device_settings.m_selected_device_index = -1;
 						
 						if (m_audio_output_device) {
 							m_audio_output_device->SetDeviceByIndex(-1);
@@ -73,16 +76,16 @@ namespace SPA {
 					}
 				}
 				
-				for (int32_t i{}; i < static_cast<int32_t>(m_device_list.size()); ++i) {
-					const auto& info = m_device_list[i];
-					bool is_selected = (m_selected_device_index == i);
+				for (int32_t i{}; i < static_cast<int32_t>(m_device_settings.m_device_list.size()); ++i) {
+					const auto& info = m_device_settings.m_device_list[i];
+					bool is_selected = (m_device_settings.m_selected_device_index == i);
 
 					// Label default devices within the list
 					std::string label = info.m_is_default ? info.m_name + " (Default)" : info.m_name;
 
 					if (ImGui::Selectable(label.c_str(), is_selected)) {
-						if (m_selected_device_index != i) {
-							m_selected_device_index = i;
+						if (m_device_settings.m_selected_device_index != i) {
+							m_device_settings.m_selected_device_index = i;
 							if (m_audio_output_device) {
 								m_audio_output_device->SetDeviceByIndex(info.m_index);
 							}
@@ -125,13 +128,13 @@ namespace SPA {
 
 	void CTTSPanel::RefreshDeviceList() {
 		if (m_audio_output_device) {
-			m_device_list = m_audio_output_device->GetDeviceList();
-			m_selected_device_index = -1; // Reset to system default on refresh
+			m_device_settings.m_device_list = m_audio_output_device->GetDeviceList();
+			m_device_settings.m_selected_device_index = -1; // Reset to system default on refresh
 
 			// Auto select current default
-			for (int32_t i{}; i < static_cast<int32_t>(m_device_list.size()); ++i) {
-				if (m_device_list[i].m_is_default) {
-					m_selected_device_index = i;
+			for (int32_t i{}; i < static_cast<int32_t>(m_device_settings.m_device_list.size()); ++i) {
+				if (m_device_settings.m_device_list[i].m_is_default) {
+					m_device_settings.m_selected_device_index = i;
 					break;
 				}
 			}

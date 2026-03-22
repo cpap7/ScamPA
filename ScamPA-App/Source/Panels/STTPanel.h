@@ -1,7 +1,7 @@
 #pragma once
 #include <ScamPA/Core/Panel.h>
-#include <ScamPA/Audio/AudioDevice.h>
 
+#include "DeviceSettings.h"
 #include "../AIAgent/AIAgentContext.h"
 
 #include <string>
@@ -12,14 +12,13 @@ namespace SPA {
 	class CSTTPanel : public IPanel {
 	private:
 		std::string m_last_transcript;
-		std::vector<SAudioDeviceInfo> m_device_list;
+		SAudioDeviceSettings m_device_settings;
 
 		CAIAgentContext& m_ai_agent_context;
 		std::unique_ptr<IAudioDevice> m_audio_input_device;
 		
-		int32_t m_selected_device_index = -1;
-		bool m_device_list_dirty		= true; // Refresh on 1st frame
-		bool m_is_recording				= false;
+		EAudioDeviceType m_selected_device_type = EAudioDeviceType::Loopback;
+		bool m_is_recording						= false;
 
 	public:
 		explicit CSTTPanel(CAIAgentContext& a_context);
@@ -31,6 +30,8 @@ namespace SPA {
 
 	private:
 		void RefreshDeviceList();
+		void Reinit(); // Used internally after changing the device type within the UI (calls shutdown + init function)
+
 	};
 
 }

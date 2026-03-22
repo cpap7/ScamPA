@@ -6,7 +6,7 @@
 
 namespace SPA {
 
-	static std::vector<float> ConvertSamples(const std::vector<int16_t> a_raw_samples) {
+	static std::vector<float> ConvertSamples(const std::vector<int16_t>& a_raw_samples) {
 		std::vector<float> float_samples(a_raw_samples.size());
 
 		for (size_t i{}; i < a_raw_samples.size(); ++i) {

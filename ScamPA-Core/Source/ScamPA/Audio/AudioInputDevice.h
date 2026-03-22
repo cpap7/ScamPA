@@ -13,7 +13,6 @@ namespace SPA {
 	private:
 		SAudioResource m_audio_resource;
 		AudioCaptureCallbackFn m_callback;		
-		
 
 	public:
 		CAudioInputDevice(const SAudioDeviceConfig& a_config);
@@ -28,6 +27,9 @@ namespace SPA {
 		virtual void Shutdown() override;
 		virtual void Start() override;
 		virtual void Stop() override;
+
+		virtual std::vector<SAudioDeviceInfo> GetDeviceList() override;
+		virtual void SetDeviceByIndex(int32_t a_index) override;
 
 		void SetCaptureCallback(const AudioCaptureCallbackFn& a_callback);
 

@@ -22,8 +22,11 @@ namespace SPA {
 		virtual void Shutdown() override;
 		virtual void Start() override;
 		virtual void Stop() override;
-		
-		// Submit PCM samples for playback
+
+		virtual std::vector<SAudioDeviceInfo> GetDeviceList() override;
+		virtual void SetDeviceByIndex(int32_t a_index) override;
+
+		// Submit pulse code modulation (PCM) samples for playback
 		// NOTE: should be thread-safe; appends to buffer
 		void SubmitSamples(const int16_t* a_samples, uint32_t a_count);
 		void SubmitSamples(const std::vector<int16_t>& a_samples);

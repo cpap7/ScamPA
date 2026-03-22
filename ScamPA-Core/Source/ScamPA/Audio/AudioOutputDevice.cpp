@@ -44,13 +44,41 @@ namespace SPA {
 
 		m_device = new ma_device();
 		ma_device_config ma_device_cfg	= ma_device_config_init(ma_device_type_playback);
-		ma_device_cfg.playback.format	= ma_format_s16;
+		ma_device_cfg.playback.format	= (m_config.m_sample_format == EAudioSampleFormat::Int16) ? ma_format_s16 : ma_format_f32;
 		ma_device_cfg.playback.channels = a_config.m_channels;
 		ma_device_cfg.sampleRate		= a_config.m_sample_rate;
 		ma_device_cfg.dataCallback		= Utilities::PlaybackDataCallback;
 		ma_device_cfg.pUserData			= this;
 
-		ma_result result = ma_device_init(nullptr, &ma_device_cfg, m_device);
+		// Resolve device index to a ma_device_id if user specified device is selected
+		ma_context ma_ctx;
+		bool ctx_initialized = false;
+		if (m_config.m_device_index >= 0) {
+			if (ma_context_init(nullptr, 0, nullptr, &ma_ctx) == MA_SUCCESS) {
+				ctx_initialized = true;
+
+				ma_device_info* device_infos = nullptr;
+				uint32_t device_count = 0;
+				ma_result enum_result = ma_context_get_devices(&ma_ctx, &device_infos, &device_count, nullptr, nullptr);
+
+				if (enum_result == MA_SUCCESS && m_config.m_device_index < device_count) {
+					ma_device_cfg.playback.pDeviceID = &device_infos[m_config.m_device_index].id;
+					SPA_CORE_INFO("(Audio Input Device) Using device: {0}", device_infos[m_config.m_device_index].name);
+				}
+				else {
+					SPA_CORE_WARN("(Audio Input Device) Device index {0} out of range, falling back to default device", m_config.m_device_index);
+				}
+			}
+			else {
+				SPA_CORE_ERROR("(Audio Input Device) Failed to initialize miniaudio context for device selection!");
+			}
+		}
+
+		ma_result result = ma_device_init(ctx_initialized ? &ma_ctx : nullptr, &ma_device_cfg, m_device);
+		if (ctx_initialized) {
+			ma_context_uninit(&ma_ctx);
+		}
+		
 		if (result != MA_SUCCESS) {
 			SPA_CORE_ERROR("(Audio Output Device) Failed to initialize device! Error Code: {0}", static_cast<int>(result));
 			delete m_device;
@@ -108,6 +136,43 @@ namespace SPA {
 
 		m_is_active = false;
 		SPA_CORE_INFO("(Audio Output Device) Audio playback stopped");
+	}
+
+	std::vector<SAudioDeviceInfo> CAudioOutputDevice::GetDeviceList() {
+		std::vector<SAudioDeviceInfo> device_list{};
+		if (!m_device || m_is_active) {
+			return device_list;
+		}
+
+		ma_context context;
+		if (ma_context_init(nullptr, 0, nullptr, &context) != MA_SUCCESS) {
+			SPA_CORE_ERROR("(Audio Output Device) Could not initialize miniaudio context to retrieve device list!");
+			return device_list;
+		}
+
+		ma_device_info* output_device_infos = nullptr;
+		uint32_t device_count = 0;
+		ma_result result = ma_context_get_devices(&context, &output_device_infos, &device_count, nullptr, nullptr);
+
+		if (result == MA_SUCCESS) {
+			for (uint32_t i{}; i < device_count; ++i) {
+				SAudioDeviceInfo device_info;
+				device_info.m_name			= output_device_infos[i].name;
+				device_info.m_is_default	= output_device_infos[i].isDefault;
+				device_info.m_index			= i;
+
+				device_list.push_back(std::move(device_info));
+			}
+		}
+
+		ma_context_uninit(&context);
+		return device_list;
+	}
+
+	void CAudioOutputDevice::SetDeviceByIndex(int32_t a_index) {
+		Shutdown();
+		m_config.m_device_index = a_index;
+		Init(m_config);
 	}
 
 	void CAudioOutputDevice::SubmitSamples(const int16_t* a_samples, uint32_t a_count) {

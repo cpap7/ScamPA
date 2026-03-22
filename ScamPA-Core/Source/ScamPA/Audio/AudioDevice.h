@@ -28,16 +28,16 @@ namespace SPA {
 		std::vector<int16_t> m_buffer;
 	};
 
-	// TODO: Implement function for getting input & output device lists
 	struct SAudioDeviceInfo {
-		std::string m_name = "";
-		std::string m_device_id = "";	// Platform-specific ID
-		bool m_is_default = false;
+		std::string m_name	= "";
+		int32_t m_index	= 0;		// miniaudio device array index
+		bool m_is_default	= false;
 	};
 	
 	struct SAudioDeviceConfig {
 		uint32_t m_sample_rate	= 16000; // 16kHz for whisper.cpp
 		uint32_t m_channels		= 1;	 // Mono audio
+		int32_t m_device_index	= -1;	 // System default = -1
 		
 		EAudioSampleFormat m_sample_format	= EAudioSampleFormat::Default;
 		EAudioDeviceType m_device_type		= EAudioDeviceType::Default;
@@ -59,7 +59,9 @@ namespace SPA {
 		virtual void Start()	= 0;
 		virtual void Stop()		= 0;
 
-		//virtual std::vector<SAudioDeviceInfo> GetDeviceList() {}
+		// System device accessors
+		virtual std::vector<SAudioDeviceInfo> GetDeviceList() = 0;
+		virtual void SetDeviceByIndex(int32_t a_index) = 0;
 
 		// Getters
 		inline const SAudioDeviceConfig& GetConfig() const	{ return m_config;					}

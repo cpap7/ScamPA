@@ -1,7 +1,7 @@
 #pragma once
 #include <ScamPA/Core/Layer.h>
 
-#include "AIAgentContext.h"
+#include "AIAgent/AIAgentContext.h"
 
 // Panels
 #include "Panels/STTPanel.h"

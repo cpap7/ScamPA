@@ -10,6 +10,7 @@ IncludeDir["imgui"] = "../Vendor/imgui"
 IncludeDir["glfw"] = "../Vendor/glfw/include"
 IncludeDir["stb_image"] = "../Vendor/stb_image"
 IncludeDir["spdlog"] = "../Vendor/spdlog/include"
+IncludeDir["miniaudio"] = "../Vendor/miniaudio"
 
 -- VoxBoxSDK
 IncludeDir["VoxBoxCommon"] = "../Vendor/VoxBoxSDK/VoxBox-Common/Source"

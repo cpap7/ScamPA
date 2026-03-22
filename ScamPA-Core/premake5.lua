@@ -22,6 +22,7 @@ project "ScamPA-Core"
         "%{IncludeDir.imgui}",
         "%{IncludeDir.stb_image}",
         "%{IncludeDir.spdlog}",
+		"%{IncludeDir.miniaudio}",
 
         -- VoxBoxSDK
         "%{IncludeDir.VoxBoxCommon}",

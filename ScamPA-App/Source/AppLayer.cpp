@@ -12,22 +12,40 @@ namespace SPA {
 	}
 
 	void CAppLayer::OnAttach() {
+		// Configure paths
+		SModelPaths paths;
+		paths.m_stt_model_path				= "Assets/Models/STT/ggml-small.bin";
+		paths.m_llm_model_path				= "Assets/Models/LLM/llama-3.2-1b-instruct-q8_0.gguf";
+		
+		paths.m_tts_model_onnx_json_path	= "Assets/Models/TTS/en_US-john-medium.onnx.json";
+		paths.m_tts_model_onnx_path			= "Assets/Models/TTS/en_US-john-medium.onnx";
+		//paths.m_tts_espeak_data_path		= "Assets/Models/TTS/espeak-ng-data";
+
+		// Create AI agent context
+		m_ai_agent_context = std::make_unique<CAIAgentContext>(paths);
+
+		// Create panels
+		m_stt_panel = std::make_unique<CSTTPanel>(*m_ai_agent_context);
+		m_llm_panel = std::make_unique<CLLMPanel>(*m_ai_agent_context);
+		m_tts_panel = std::make_unique<CTTSPanel>(*m_ai_agent_context);
 
 	}
-	void CAppLayer::OnDetach() {
 
+	void CAppLayer::OnDetach() {
+		m_stt_panel.reset();
+		m_llm_panel.reset();
+		m_tts_panel.reset();
+		m_ai_agent_context.reset();
 	}
 
 	void CAppLayer::OnUpdate(float a_timestep) {
-
+		// TODO: poll async inference results here
 	}
 
 	void CAppLayer::OnUIRender() {
-		ImGui::Begin("Hello");
-		ImGui::Button("Button");
-		ImGui::End();
-
-		ImGui::ShowDemoWindow();
+		m_stt_panel->OnUIRender();
+		m_llm_panel->OnUIRender();
+		m_tts_panel->OnUIRender();
 	}
 
 	void CAppLayer::OnEvent(IEvent& a_event) {

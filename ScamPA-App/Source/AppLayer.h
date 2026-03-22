@@ -1,8 +1,25 @@
 #pragma once
 #include <ScamPA/Core/Layer.h>
 
+#include "AIAgentContext.h"
+
+// Panels
+#include "Panels/STTPanel.h"
+#include "Panels/LLMPanel.h"
+#include "Panels/TTSPanel.h"
+
+#include <memory>
+
 namespace SPA {
 	class CAppLayer : public ILayer {
+	private:
+		std::unique_ptr<CAIAgentContext> m_ai_agent_context;
+
+		// Panels
+		std::unique_ptr<CSTTPanel> m_stt_panel;
+		std::unique_ptr<CLLMPanel> m_llm_panel;
+		std::unique_ptr<CTTSPanel> m_tts_panel;
+
 	public:
 		CAppLayer();
 		~CAppLayer();

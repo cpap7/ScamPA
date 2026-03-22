@@ -32,6 +32,11 @@
 #include <ScamPA/Renderer/VulkanSwapchain.h>
 #include <ScamPA/Renderer/VulkanImage.h>
 
+// Audio
+#include <ScamPA/Audio/AudioDevice.h>
+#include <ScamPA/Audio/AudioInputDevice.h>
+#include <ScamPA/Audio/AudioOutputDevice.h>
+
 // ImGui
 #include <imgui.h>
 

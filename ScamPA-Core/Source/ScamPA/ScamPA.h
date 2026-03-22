@@ -10,7 +10,7 @@
 
 // Core 
 #include <ScamPA/Core/Application.h>
-//#include <ScamPA/Core/Logger.h>
+#include <ScamPA/Core/Logger.h>
 #include <ScamPA/Core/Layer.h>
 
 // Input

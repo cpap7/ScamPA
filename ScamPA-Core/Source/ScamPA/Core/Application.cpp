@@ -163,7 +163,7 @@ namespace SPA {
 				SPA_CORE_ERROR("(Application) Failed to wait for device idle during shutdown!");
 			}
 		}
-		// Destroy renderer & swapchain - smart ptrs
+		// Destroy renderer & swapchain smart ptrs
 		m_renderer.reset();
 		m_swapchain.reset();
 

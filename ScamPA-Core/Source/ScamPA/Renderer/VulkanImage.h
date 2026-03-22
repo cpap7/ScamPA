@@ -16,15 +16,13 @@ namespace SPA {
 	private:
 		std::string m_file_path;
 
-		VkImage m_image = nullptr;
-		VkImageView m_image_view = nullptr;
-		VkDeviceMemory m_memory = nullptr;
-		VkSampler m_sampler = nullptr;
-
-		VkBuffer m_staging_buffer = nullptr;
-		VkDeviceMemory m_staging_buffer_memory = nullptr;
-
-		VkDescriptorSet m_descriptor_set = nullptr;
+		VkImage m_image							= nullptr;
+		VkImageView m_image_view				= nullptr;
+		VkDeviceMemory m_memory					= nullptr;
+		VkSampler m_sampler						= nullptr;
+		VkBuffer m_staging_buffer				= nullptr;
+		VkDeviceMemory m_staging_buffer_memory	= nullptr;
+		VkDescriptorSet m_descriptor_set		= nullptr;
 
 		size_t m_aligned_size = 0;
 

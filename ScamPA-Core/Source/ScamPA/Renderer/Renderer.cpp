@@ -24,14 +24,6 @@ namespace SPA {
 		}
 	}
 
-	void CRenderer::RenderViewports() {
-		ImGuiIO& io = ImGui::GetIO();
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-		}
-	}
-
 	VkCommandBuffer CRenderer::GetCommandBuffer(bool a_begin_flag) {
 		return m_swapchain.GetCommandBuffer(a_begin_flag);
 	}

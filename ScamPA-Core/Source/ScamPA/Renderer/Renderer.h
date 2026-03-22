@@ -20,7 +20,6 @@ namespace SPA {
 		// Render lifecycle
 		void BeginFrame();
 		void EndFrame();
-		void RenderViewports();
 
 		// Utility methods
 		VkCommandBuffer GetCommandBuffer(bool a_begin_flag = true);

@@ -11,9 +11,9 @@ namespace SPA {
 
 	class CVulkanSwapchain {
 	private:
+		ImGui_ImplVulkanH_Window m_window_data{};
 		std::vector<std::vector<VkCommandBuffer>> m_allocated_command_buffers;
 		CVulkanContext& m_graphics_context;
-		ImGui_ImplVulkanH_Window m_window_data{};
 		uint32_t m_current_frame_index = 0;
 		uint32_t m_min_image_count = 2;
 		bool m_needs_rebuild = false;

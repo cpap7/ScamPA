@@ -32,7 +32,7 @@ namespace SPA {
 	}
 
 	void CTTSPanel::OnUIRender() {
-		ImGui::Begin("Text-To-Speech");
+		ImGui::Begin("Text-To-Speech Settings");
 		auto* tts_engine = m_ai_agent_context.GetTTSEngine();
 		if (!tts_engine) {
 			ImGui::TextColored(ImVec4(1, 1, 0, 1), "TTS Engine Not Loaded");
@@ -43,7 +43,31 @@ namespace SPA {
 			return;
 		}
 		ImGui::TextColored(ImVec4(0, 1, 0, 1), "TTS Engine Loaded");
+		ImGui::TextDisabled("Model Path ");
+		ImGui::SameLine();
+		ImGui::InputText("##ttsmodelonnxpath", (char*)m_ai_agent_context.GetTTSOnnxModelPath().c_str(), ImGuiInputTextFlags_ReadOnly);
+		
+		ImGui::TextDisabled("Config Path");
+		ImGui::SameLine();
+		ImGui::InputText("##ttsmodelonnxjsonpath", (char*)m_ai_agent_context.GetTTSOnnxModelJsonPath().c_str(), ImGuiInputTextFlags_ReadOnly);
+
+
 		ImGui::InputTextMultiline("##tts_text", m_text_buffer, sizeof(m_text_buffer), ImVec2(-1, 100));
+		if (ImGui::Button("Synthesize Audio") && m_text_buffer[0] != '\0') {
+			// NOTE: This will be blocking, so this might be better off being offloaded to a worker thread
+			VoxBox::SAudioResult result = tts_engine->Synthesize(m_text_buffer);
+			if (result.Success()) {
+				SPA_CLIENT_INFO("TTS synthesized {0} samples @ {1} Hz", result.SampleCount(), result.SampleRate());
+
+				auto* output_device = static_cast<CAudioOutputDevice*>(m_audio_output_device.get());
+				if (output_device) {
+					output_device->ClearBuffer();
+					output_device->SubmitSamples(result.SampleData(), result.SampleCount());
+					output_device->Start();
+				}
+			}
+		}
+
 
 		ImGui::Separator();
 		ImGui::Text("Voice Settings");
@@ -107,21 +131,6 @@ namespace SPA {
 		}
 
 		ImGui::Separator();
-		
-		if (ImGui::Button("Synthesize") && m_text_buffer[0] != '\0') {
-			// NOTE: This will be blocking, so this might be better off being offloaded to a worker thread
-			VoxBox::SAudioResult result = tts_engine->Synthesize(m_text_buffer);
-			if (result.Success()) {
-				SPA_CLIENT_INFO("TTS synthesized {0} samples @ {1} Hz", result.SampleCount(), result.SampleRate());
-
-				auto* output_device = static_cast<CAudioOutputDevice*>(m_audio_output_device.get());
-				if (output_device) {
-					output_device->ClearBuffer();
-					output_device->SubmitSamples(result.SampleData(), result.SampleCount());
-					output_device->Start();
-				}
-			}
-		}
 
 		ImGui::End();
 	}

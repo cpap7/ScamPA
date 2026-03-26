@@ -42,7 +42,7 @@ namespace SPA {
 	}
 
 	void CSTTPanel::OnUIRender() {
-		ImGui::Begin("Speech-To-Text");
+		ImGui::Begin("Speech-To-Text Settings");
 
 		auto* stt_engine = m_ai_agent_context.GetSTTEngine();
 		if (!stt_engine) {
@@ -54,6 +54,10 @@ namespace SPA {
 			return;
 		}
 		ImGui::TextColored(ImVec4(0, 1, 0, 1), "STT Engine Loaded");
+		ImGui::TextDisabled("Model Path");
+		ImGui::SameLine();
+		ImGui::InputText("##sttmodelpath", (char*)m_ai_agent_context.GetSTTModelPath().c_str(), ImGuiInputTextFlags_ReadOnly);
+
 
 		ImGui::Separator();
 
@@ -88,8 +92,7 @@ namespace SPA {
 				}
 			}
 
-
-			if (m_is_recording) {
+			if (m_is_recording) { // Do not allow changes while recording audio
 				ImGui::BeginDisabled();
 			}
 

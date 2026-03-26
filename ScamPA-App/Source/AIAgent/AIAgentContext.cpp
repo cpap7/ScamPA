@@ -3,11 +3,19 @@
 namespace SPA {
 	CAIAgentContext::CAIAgentContext(const SModelPaths& a_paths)
 		: m_paths(a_paths) {
-		m_is_initialized = true;
+		Setup();
 	}
 
 	CAIAgentContext::~CAIAgentContext() {
 		Shutdown();
+	}
+
+	void CAIAgentContext::Setup() {
+		InitSTT();
+		InitLLM();
+		InitTTS();
+
+		m_is_initialized = true;
 	}
 
 	void CAIAgentContext::InitSTT() {

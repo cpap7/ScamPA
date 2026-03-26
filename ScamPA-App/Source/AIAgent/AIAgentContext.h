@@ -34,19 +34,31 @@ namespace SPA {
 		explicit CAIAgentContext(const SModelPaths& a_paths);
 		~CAIAgentContext();
 		
-		// Called by panels
+		// Called by panel
+		void Setup();
+
+		// TODO: Separate threads
 		void InitSTT();
 		void InitLLM();
 		void InitTTS();
 		
 		void Shutdown();
 
-		inline bool IsInitialized() const { return m_is_initialized; }
+		inline bool IsContextInitialized() const	{ return m_is_initialized;			}
+		inline bool IsSTTInitialized() const		{ return m_stt_engine != nullptr;	}
+		inline bool IsLLMInitialized() const		{ return m_llm_engine != nullptr;	}
+		inline bool IsTTSInitialized() const		{ return m_tts_engine != nullptr;	}
 
 		// Accessors used by panels
 		inline VoxBox::CSTTEngine* GetSTTEngine() const { return m_stt_engine.get(); }
 		inline VoxBox::CLLMEngine* GetLLMEngine() const { return m_llm_engine.get(); }
 		inline VoxBox::CTTSEngine* GetTTSEngine() const { return m_tts_engine.get(); }
+
+		inline const std::string& GetSTTModelPath() const			{ return m_paths.m_stt_model_path;				}
+		inline const std::string& GetLLMModelPath() const			{ return m_paths.m_llm_model_path;				}
+		inline const std::string& GetTTSOnnxModelPath() const		{ return m_paths.m_tts_model_onnx_path;			}
+		inline const std::string& GetTTSOnnxModelJsonPath() const	{ return m_paths.m_tts_model_onnx_json_path;	}
+
 	};
 }
 

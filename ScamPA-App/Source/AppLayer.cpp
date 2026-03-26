@@ -21,13 +21,15 @@ namespace SPA {
 		paths.m_tts_model_onnx_path			= "Assets/Models/TTS/en_US-john-medium.onnx";
 		//paths.m_tts_espeak_data_path		= "Assets/Models/TTS/espeak-ng-data";
 
-		// Create AI agent context
+		// Create AI agent context & state machine
 		m_ai_agent_context = std::make_unique<CAIAgentContext>(paths);
+		m_chatbot_state_machine = std::make_unique<CChatbotStateMachine>(*m_ai_agent_context);
 
 		// Create panels
-		m_stt_panel = std::make_unique<CSTTPanel>(*m_ai_agent_context);
-		m_llm_panel = std::make_unique<CLLMPanel>(*m_ai_agent_context);
-		m_tts_panel = std::make_unique<CTTSPanel>(*m_ai_agent_context);
+		m_stt_panel			= std::make_unique<CSTTPanel>(*m_ai_agent_context);
+		m_llm_panel			= std::make_unique<CLLMPanel>(*m_ai_agent_context);
+		m_tts_panel			= std::make_unique<CTTSPanel>(*m_ai_agent_context);
+		m_chatbot_panel	= std::make_unique<CChatbotPanel>(*m_chatbot_state_machine);
 
 	}
 
@@ -35,6 +37,8 @@ namespace SPA {
 		m_stt_panel.reset();
 		m_llm_panel.reset();
 		m_tts_panel.reset();
+		m_chatbot_panel.reset();
+		m_chatbot_state_machine.reset();
 		m_ai_agent_context.reset();
 	}
 
@@ -46,6 +50,7 @@ namespace SPA {
 		m_stt_panel->OnUIRender();
 		m_llm_panel->OnUIRender();
 		m_tts_panel->OnUIRender();
+		m_chatbot_panel->OnUIRender();
 	}
 
 	void CAppLayer::OnEvent(IEvent& a_event) {

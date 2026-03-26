@@ -34,9 +34,10 @@ namespace SPA {
 		void SetCaptureCallback(const AudioCaptureCallbackFn& a_callback);
 
 		// Drains audio buffer & returns all buffered samples
-		// NOTE: Should be thread-safe
 		std::vector<int16_t> ConsumeBuffer();
-		
+		float GetRecentRMSEnergy(size_t a_sample_count = 4800) const; 		// Non-consuming peek helper - gets RMS energy of last set of samples
+		size_t GetBufferedSampleCount() const; 								
+
 		// Internal helper called from miniaudio data callback
 		void OnDataReceived(const int16_t* a_samples, uint32_t a_sample_count);
 	};

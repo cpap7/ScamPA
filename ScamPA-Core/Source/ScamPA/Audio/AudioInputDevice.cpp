@@ -214,6 +214,30 @@ namespace SPA {
 		return consumed;
 	}
 
+	float CAudioInputDevice::GetRecentRMSEnergy(size_t a_sample_count) const {
+		std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
+		
+		if (m_audio_resource.m_buffer.empty()) {
+			return 0.0f;
+		}
+		
+		size_t count = std::min(a_sample_count, m_audio_resource.m_buffer.size());
+		size_t start = m_audio_resource.m_buffer.size() - count;
+
+		double sum_sq = 0.0;
+		for (size_t i{ start }; i < m_audio_resource.m_buffer.size(); ++i) {
+			double s = static_cast<double>(m_audio_resource.m_buffer[i]) / 32768.0;
+			sum_sq += s * s;
+		}
+
+		return static_cast<float>(std::sqrt(sum_sq / count));
+	}
+
+	size_t CAudioInputDevice::GetBufferedSampleCount() const {
+		std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
+		return m_audio_resource.m_buffer.size();
+	}
+
 	void CAudioInputDevice::OnDataReceived(const int16_t* a_samples, uint32_t a_sample_count) {
 		{ // Separate block to prevent potential deadlock
 			std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);

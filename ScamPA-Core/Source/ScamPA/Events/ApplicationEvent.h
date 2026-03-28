@@ -72,7 +72,7 @@ namespace SPA {
 
 		} // Move constructor
 
-		const std::vector<std::filesystem::path>& GetPath() const { return m_paths; }
+		inline const std::vector<std::filesystem::path>& GetPath() const { return m_paths; }
 
 		EVENT_CLASS_TYPE(WindowDrop)
 		EVENT_CLASS_CATEGORY(EventCategoryApplication)

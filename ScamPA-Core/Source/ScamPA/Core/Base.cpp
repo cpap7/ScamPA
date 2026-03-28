@@ -3,8 +3,6 @@
 
 #include "Logger.h"
 
-#define SPA_BUILD_VERSION "v0.1a"
-
 namespace SPA {
 	void InitializeCore() {
 		CLogger::Init();

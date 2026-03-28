@@ -1,7 +1,9 @@
 #include "spapch.h"
 #include "ImGuiLayer.h"
-#include "ScamPA/Core/Application.h"
+#include "ImGuiCustomUI.h"
+#include "ImGuiTheme.h"
 
+#include "ScamPA/Core/Application.h"
 
 #include <GLFW/glfw3.h>
 
@@ -9,6 +11,10 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
 #include <imgui_internal.h>
+
+// Embedded images
+#include "ScamPALogo.embed"
+#include "WindowImages.embed"
 
 // Embedded font
 #include "Roboto-Regular.embed"
@@ -26,6 +32,7 @@ namespace SPA {
 
 	void CImGuiLayer::OnAttach() {
 		CApplication& application = CApplication::GetApplicationInstance();
+		m_use_custom_titlebar = application.GetWindowHandle().HasCustomTitlebar();
 
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
@@ -49,8 +56,8 @@ namespace SPA {
 			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 		}
 
-		SetDarkThemeColors();
-		
+		SPA::UI::SetDarkTheme();
+
 		// Setup platform/renderer backends
 		CVulkanContext& graphics_context = application.GetRenderer().GetGraphicsContext();
 		CVulkanSwapchain& swapchain = application.GetRenderer().GetSwapchain();
@@ -91,10 +98,49 @@ namespace SPA {
 			}
 			ImGui_ImplVulkan_DestroyFontUploadObjects();
 		}
+
+		// Load images
+		{
+			uint32_t w, h;
+			void* data = CVulkanImage::Decode(g_ScamPALogo, sizeof(g_ScamPALogo), w, h);
+			m_app_header_icon = std::make_shared<SPA::CVulkanImage>(w, h, EImageFormat::RGBA, data);
+			free(data);
+		}
+		{
+			uint32_t w, h;
+			void* data = CVulkanImage::Decode(g_WindowMinimizeIcon, sizeof(g_WindowMinimizeIcon), w, h);
+			m_icon_minimize = std::make_shared<SPA::CVulkanImage>(w, h, EImageFormat::RGBA, data);
+			free(data);
+		}
+		{
+			uint32_t w, h;
+			void* data = CVulkanImage::Decode(g_WindowMaximizeIcon, sizeof(g_WindowMaximizeIcon), w, h);
+			m_icon_maximize = std::make_shared<SPA::CVulkanImage>(w, h, EImageFormat::RGBA, data);
+			free(data);
+		}
+		{
+			uint32_t w, h;
+			void* data = CVulkanImage::Decode(g_WindowRestoreIcon, sizeof(g_WindowRestoreIcon), w, h);
+			m_icon_restore = std::make_shared<SPA::CVulkanImage>(w, h, EImageFormat::RGBA, data);
+			free(data);
+		}
+		{
+			uint32_t w, h;
+			void* data = CVulkanImage::Decode(g_WindowCloseIcon, sizeof(g_WindowCloseIcon), w, h);
+			m_icon_close = std::make_shared<SPA::CVulkanImage>(w, h, EImageFormat::RGBA, data);
+			free(data);
+		}
 	}
 
 	void CImGuiLayer::OnDetach() {
-		// LIFO shutdown
+		// Release icon resources
+		m_app_header_icon.reset();
+		m_icon_close.reset();
+		m_icon_minimize.reset();
+		m_icon_maximize.reset();
+		m_icon_restore.reset();
+
+		// LIFO backend shutdown
 		ImGui_ImplVulkan_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
@@ -155,7 +201,7 @@ namespace SPA {
 		static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
 
-		if (m_menubar_callback) {
+		if (!m_use_custom_titlebar && m_menubar_callback) {
 			window_flags |= ImGuiWindowFlags_MenuBar;
 		}
 
@@ -181,6 +227,13 @@ namespace SPA {
 		ImGui::Begin("DockSpace", nullptr, window_flags);
 		ImGui::PopStyleVar(3);
 
+		// Draw custom titlebar if enabled
+		if (m_use_custom_titlebar) {
+			float titlebar_height = 0.0f; // populated via RenderCustomTitlebar()
+			RenderCustomTitlebar(titlebar_height);
+			ImGui::SetCursorPosY(titlebar_height);
+		}
+
 		// Submit the DockSpace
 		ImGuiIO& io = ImGui::GetIO();
 		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
@@ -188,8 +241,8 @@ namespace SPA {
 			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 		}
 
-		// Render menu bar
-		if (m_menubar_callback) {
+		// Render menu bar if we're not using a custom titlebar, since it draws its own
+		if (!m_use_custom_titlebar && m_menubar_callback) {
 			if (ImGui::BeginMenuBar()) {
 				m_menubar_callback();
 				ImGui::EndMenuBar();
@@ -198,114 +251,181 @@ namespace SPA {
 
 		ImGui::End();
 	}
+
+	void CImGuiLayer::RenderCustomMenubar() {
+		if (!m_menubar_callback)
+			return;
+
+		if (m_use_custom_titlebar) {
+			const ImRect menu_bar_rect = { ImGui::GetCursorPos(), { ImGui::GetContentRegionAvail().x + ImGui::GetCursorScreenPos().x, ImGui::GetFrameHeightWithSpacing() } };
+
+			ImGui::BeginGroup();
+			if (UI::BeginMenubar(menu_bar_rect)) {
+				m_menubar_callback();
+			}
+
+			UI::EndMenubar();
+			ImGui::EndGroup();
+
+		}
+		else {
+			if (ImGui::BeginMenuBar()) {
+				m_menubar_callback();
+				ImGui::EndMenuBar();
+			}
+		}
+	}
+
+	void CImGuiLayer::RenderCustomTitlebar(float& a_out_titlebar_height) {
+		CApplication& app = CApplication::GetApplicationInstance();
+		
+		std::string version = app.GetApplicationVersion();
+		std::string configuration = app.GetConfigurationName();
+		std::string platform = app.GetPlatformName();
+		std::string window_title = "ScamPA App (" + version + ") - " + configuration + " (" + platform + ")";
+		
+		SApplicationSpecification app_spec = app.GetSpecification();
+		app_spec.m_name = window_title;
+
+		CWindow& window = app.GetApplicationInstance().GetWindowHandle();
+
+		const float titlebar_height = 58.0f;
+		const bool is_maximized = window.IsMaximized();
+		float titlebar_vertical_offset = is_maximized ? -6.0f : 0.0f;
+		const ImVec2 window_padding = ImGui::GetCurrentWindow()->WindowPadding;
+
+		ImGui::SetCursorPos(ImVec2(window_padding.x, window_padding.y + titlebar_vertical_offset));
+		const ImVec2 titlebar_min = ImGui::GetCursorScreenPos();
+		const ImVec2 titlebar_max = { ImGui::GetCursorScreenPos().x + ImGui::GetWindowWidth() - window_padding.y * 2.0f,
+									 ImGui::GetCursorScreenPos().y + titlebar_height };
+		auto* bg_draw_list = ImGui::GetBackgroundDrawList();
+		auto* fg_draw_list = ImGui::GetForegroundDrawList();
+		bg_draw_list->AddRectFilled(titlebar_min, titlebar_max, UI::Colors::Theme::titlebar);
+		// DEBUG TITLEBAR BOUNDS
+		// fg_draw_list->AddRect(titlebar_min, titlebar_max, UI::Colors::Theme::invalidPrefab);
+
+		// Logo
+		{
+			const int logoWidth = 50;// m_LogoTex->GetWidth();
+			const int logoHeight = 50;// m_LogoTex->GetHeight();
+			const ImVec2 logoOffset(16.0f + window_padding.x, 5.0f + window_padding.y + titlebar_vertical_offset);
+			const ImVec2 logoRectStart = { ImGui::GetItemRectMin().x + logoOffset.x, ImGui::GetItemRectMin().y + logoOffset.y };
+			const ImVec2 logoRectMax = { logoRectStart.x + logoWidth, logoRectStart.y + logoHeight };
+			fg_draw_list->AddImage(m_app_header_icon->GetDescriptorSet(), logoRectStart, logoRectMax);
+		}
+
+		ImGui::BeginHorizontal("Titlebar", { ImGui::GetWindowWidth() - window_padding.y * 2.0f, ImGui::GetFrameHeightWithSpacing() });
+
+		static float move_offset_x;
+		static float move_offset_y;
+		const float w = ImGui::GetContentRegionAvail().x;
+		const float buttons_area_width = 94;
+
+		// Title bar drag area
+		// On Windows we hook into the GLFW win32 window internals
+		ImGui::SetCursorPos(ImVec2(window_padding.x, window_padding.y + titlebar_vertical_offset)); // Reset cursor pos
+		// DEBUG DRAG BOUNDS
+		// fg_draw_list->AddRect(ImGui::GetCursorScreenPos(), ImVec2(ImGui::GetCursorScreenPos().x + w - buttons_area_width, ImGui::GetCursorScreenPos().y + titlebar_height), UI::Colors::Theme::invalidPrefab);
+		ImGui::InvisibleButton("##titleBarDragZone", ImVec2(w - buttons_area_width, titlebar_height));
+
+		m_is_titlebar_hovered = ImGui::IsItemHovered();
+
+		if (is_maximized) {
+			float window_mouse_pos_y = ImGui::GetMousePos().y - ImGui::GetCursorScreenPos().y;
+			if (window_mouse_pos_y >= 0.0f && window_mouse_pos_y <= 5.0f)
+				m_is_titlebar_hovered = true; // Account for the top-most pixels which don't register
+		}
+
+		// Draw Menubar
+		if (m_menubar_callback) {
+			ImGui::SuspendLayout();
+			{
+				ImGui::SetItemAllowOverlap();
+				const float logoHorizontalOffset = 16.0f * 2.0f + 48.0f + window_padding.x;
+				ImGui::SetCursorPos(ImVec2(logoHorizontalOffset, 6.0f + titlebar_vertical_offset));
+				RenderCustomMenubar();
+
+				if (ImGui::IsItemHovered())
+					m_is_titlebar_hovered = false;
+			}
+
+			ImGui::ResumeLayout();
+		}
+
+		{
+			// Centered Window title
+			ImVec2 current_cursor_pos = ImGui::GetCursorPos();
+			ImVec2 text_size = ImGui::CalcTextSize(app_spec.m_name.c_str());
+			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() * 0.5f - text_size.x * 0.5f, 2.0f + window_padding.y + 6.0f));
+			ImGui::Text("%s", app_spec.m_name.c_str()); // Draw title
+			ImGui::SetCursorPos(current_cursor_pos);
+		}
+
+		// Window buttons
+		const ImU32 button_col_n = UI::Colors::ColorWithMultipliedValue(UI::Colors::Theme::text, 0.9f);
+		const ImU32 button_col_h = UI::Colors::ColorWithMultipliedValue(UI::Colors::Theme::text, 1.2f);
+		const ImU32 button_col_p = UI::Colors::Theme::text_darker;
+		const float button_width = 14.0f;
+		const float button_height = 14.0f;
+
+		// Minimize Button
+
+		ImGui::Spring();
+		UI::ShiftCursorY(8.0f);
+		{
+			const int icon_width = m_icon_minimize->GetWidth();
+			const int icon_height = m_icon_minimize->GetHeight();
+			const float pad_y = (button_height - (float)icon_height) / 2.0f;
+			if (ImGui::InvisibleButton("Minimize", ImVec2(button_width, button_height))) {
+				window.Minimize();
+			}
+
+			UI::DrawButtonImage(m_icon_minimize, button_col_n, button_col_h, button_col_p, UI::RectExpanded(UI::GetItemRect(), 0.0f, -pad_y));
+		}
+
+
+		// Maximize Button
+		ImGui::Spring(-1.0f, 17.0f);
+		UI::ShiftCursorY(8.0f);
+		{
+			const int icon_width = m_icon_maximize->GetWidth();
+			const int icon_height = m_icon_maximize->GetHeight();
+
+			//const bool is_maximized = window.IsMaximized();
+
+			if (ImGui::InvisibleButton("Maximize", ImVec2(button_width, button_height))) {
+				if (is_maximized) {
+					window.Restore();
+				}
+				else {
+					window.Maximize();
+				}
+			}
+
+			UI::DrawButtonImage(is_maximized ? m_icon_restore : m_icon_maximize, button_col_n, button_col_h, button_col_p);
+		}
+
+		// Close Button
+		ImGui::Spring(-1.0f, 15.0f);
+		UI::ShiftCursorY(8.0f);
+		{
+			const int icon_width = m_icon_close->GetWidth();
+			const int icon_height = m_icon_close->GetHeight();
+			if (ImGui::InvisibleButton("Close", ImVec2(button_width, button_height))) {
+				app.Close();
+			}
+
+			UI::DrawButtonImage(m_icon_close, UI::Colors::Theme::text, UI::Colors::ColorWithMultipliedValue(UI::Colors::Theme::text, 1.4f), button_col_p);
+		}
+
+		ImGui::Spring(-1.0f, 18.0f);
+		ImGui::EndHorizontal();
+
+		a_out_titlebar_height = titlebar_height;
+	}
 	
 	uint32_t CImGuiLayer::GetActiveWidgetID() const {
 		return GImGui->ActiveId;
 	}
-
-	void CImGuiLayer::SetDarkThemeColors() {
-		ImGuiStyle& style = ImGui::GetStyle();
-		ImVec4(&colors)[ImGuiCol_COUNT] = style.Colors;
-
-		// Base dark background
-		colors[ImGuiCol_WindowBg] = ImVec4(0.08f, 0.085f, 0.09f, 1.00f);
-		colors[ImGuiCol_ChildBg] = ImVec4(0.08f, 0.08f, 0.09f, 1.00f);
-		colors[ImGuiCol_PopupBg] = ImVec4(0.07f, 0.07f, 0.075f, 0.98f);
-		colors[ImGuiCol_MenuBarBg] = ImVec4(0.085f, 0.085f, 0.095f, 1.00f);
-
-		// Neutral/dark surface tiers
-		const ImVec4 surface_low = ImVec4(0.12f, 0.12f, 0.14f, 1.00f);
-		const ImVec4 surface_mid = ImVec4(0.16f, 0.16f, 0.19f, 1.00f);
-		const ImVec4 surface_high = ImVec4(0.20f, 0.20f, 0.23f, 1.00f);
-
-		// Deep royal purple color family (#4B006E base) for panel/window borders and separators
-		const ImVec4 accent = ImVec4(0.294f, 0.000f, 0.431f, 1.00f);		// #4B006E
-		const ImVec4 accent_hover = ImVec4(0.365f, 0.000f, 0.537f, 1.00f);	// #5D0089
-		const ImVec4 accent_active = ImVec4(0.463f, 0.000f, 0.710f, 1.00f);	// #7600B5
-
-		// Headers
-		colors[ImGuiCol_Header] = surface_mid;
-		colors[ImGuiCol_HeaderHovered] = surface_high;
-		colors[ImGuiCol_HeaderActive] = surface_high;
-
-		// Tabs
-		colors[ImGuiCol_Tab] = surface_low;
-		colors[ImGuiCol_TabHovered] = surface_high;
-		colors[ImGuiCol_TabActive] = surface_mid;
-		colors[ImGuiCol_TabUnfocused] = surface_low;
-		colors[ImGuiCol_TabUnfocusedActive] = surface_mid;
-
-		// Title bars 
-		colors[ImGuiCol_TitleBg] = surface_low;
-		colors[ImGuiCol_TitleBgActive] = surface_low;
-		colors[ImGuiCol_TitleBgCollapsed] = surface_low;
-
-		// Frames (inputs, sliders)
-		colors[ImGuiCol_FrameBg] = surface_mid;
-		colors[ImGuiCol_FrameBgHovered] = surface_high;
-		colors[ImGuiCol_FrameBgActive] = surface_high;
-
-		// Buttons
-		colors[ImGuiCol_Button] = surface_mid;
-		colors[ImGuiCol_ButtonHovered] = surface_high;
-		colors[ImGuiCol_ButtonActive] = surface_high;
-
-		// Interactive accents
-		colors[ImGuiCol_CheckMark] = ImVec4(0.85f, 0.85f, 0.90f, 1.00f);
-		colors[ImGuiCol_SliderGrab] = ImVec4(0.65f, 0.65f, 0.70f, 1.00f);
-		colors[ImGuiCol_SliderGrabActive] = ImVec4(0.75f, 0.75f, 0.80f, 1.00f);
-		colors[ImGuiCol_ResizeGrip] = ImVec4(0.45f, 0.45f, 0.50f, 1.00f);
-		colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.60f, 0.60f, 0.65f, 1.00f);
-		colors[ImGuiCol_ResizeGripActive] = ImVec4(0.70f, 0.70f, 0.75f, 1.00f);
-
-		// Scrollbar
-		colors[ImGuiCol_ScrollbarBg] = ImVec4(0.06f, 0.06f, 0.065f, 1.00f);
-		colors[ImGuiCol_ScrollbarGrab] = surface_low;
-		colors[ImGuiCol_ScrollbarGrabHovered] = surface_mid;
-		colors[ImGuiCol_ScrollbarGrabActive] = surface_high;
-
-		// Separators
-		colors[ImGuiCol_Separator] = ImVec4(0.24f, 0.24f, 0.27f, 1.00f);
-		colors[ImGuiCol_SeparatorHovered] = accent_hover; // = ImVec4(0.32f, 0.32f, 0.36f, 1.00f);
-		colors[ImGuiCol_SeparatorActive] = accent_active; //= ImVec4(0.36f, 0.36f, 0.40f, 1.00f);
-
-		// Borders
-		colors[ImGuiCol_Border] = accent; // Purple
-		colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-
-		// Text
-		colors[ImGuiCol_Text] = ImVec4(0.90f, 0.90f, 0.95f, 1.00f);
-		colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.55f, 1.00f);
-
-		// Drag & Drop 
-		colors[ImGuiCol_DragDropTarget] = ImVec4(0.80f, 0.80f, 0.90f, 1.00f);
-
-		// Plot
-		colors[ImGuiCol_PlotLines] = ImVec4(0.60f, 0.60f, 0.65f, 1.00f);
-		colors[ImGuiCol_PlotLinesHovered] = ImVec4(0.75f, 0.75f, 0.80f, 1.00f);
-		colors[ImGuiCol_PlotHistogram] = ImVec4(0.60f, 0.60f, 0.65f, 1.00f);
-		colors[ImGuiCol_PlotHistogramHovered] = ImVec4(0.75f, 0.75f, 0.80f, 1.00f);
-
-		// Rounding and spacing
-		style.WindowRounding = 6.0f;
-		style.FrameRounding = 5.0f;
-		style.GrabRounding = 4.0f;
-		style.PopupRounding = 6.0f;
-		style.TabRounding = 6.0f;
-
-		// Borders on panels/windows 
-		style.WindowBorderSize = 1.0f;
-		style.ChildBorderSize = 1.0f;
-		style.PopupBorderSize = 1.0f;
-		style.FrameBorderSize = 0.0f;
-		style.TabBorderSize = 0.0f;
-
-		style.ItemSpacing = ImVec2(8.0f, 6.0f);
-		style.ItemInnerSpacing = ImVec2(6.0f, 4.0f);
-		style.WindowPadding = ImVec2(10.0f, 10.0f);
-		style.FramePadding = ImVec2(8.0f, 6.0f);
-		style.ScrollbarSize = 14.0f;
-	}
-
 
 }

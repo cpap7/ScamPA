@@ -5,11 +5,13 @@
 #include "ScamPA/Events/KeyEvent.h"
 #include "ScamPA/Events/MouseEvent.h"
 
-
 #define GLFW_INCLUDE_NONE
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+
 #include <imgui.h>
+
+#include <stb_image.h>
 
 namespace SPA {
 	static void GLFWErrorCallback(int a_error, const char* a_description) {
@@ -19,10 +21,13 @@ namespace SPA {
 	static bool s_glfw_initialized = false;
 
 	CWindow::CWindow(const SWindowSpecification& a_specification) {
-		m_window_data.m_title = a_specification.m_title;
-		m_window_data.m_width = a_specification.m_width;
-		m_window_data.m_height = a_specification.m_height;
-
+		m_window_data.m_icon_path			= a_specification.m_icon_path;
+		m_window_data.m_title				= a_specification.m_title;
+		m_window_data.m_width				= a_specification.m_width;
+		m_window_data.m_height				= a_specification.m_height;
+		m_window_data.m_has_custom_titlebar = a_specification.m_use_custom_titlebar;
+		m_window_data.m_window_resizeable	= a_specification.m_window_resizeable;
+		m_window_data.m_center_window		= a_specification.m_center_window;
 		Init();
 	}
 
@@ -47,7 +52,6 @@ namespace SPA {
 
 	void CWindow::Init() {
 		
-
 		if (!s_glfw_initialized) {
 			glfwSetErrorCallback(GLFWErrorCallback);
 			
@@ -58,12 +62,22 @@ namespace SPA {
 
 			s_glfw_initialized = true;
 		}
+
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // This would differ between graphics APIs (i.e., OpenGL), but for Vulkan, this is sufficient
 
-#ifdef SPA_PLATFORM_WINDOWS
-		// TODO: Different platforms might need different window hints (i.e., Mac OSX & Linux)
-		// I.e., to remove window decoration
-#endif
+		if (m_window_data.m_has_custom_titlebar) {
+			glfwWindowHint(GLFW_TITLEBAR, false);
+		}
+		// TODO: Undecorated windows possibly
+
+		// Hidden window initially
+		//glfwWindowHint(GLFW_VISIBLE, false);
+
+		GLFWmonitor* primary_monitor = glfwGetPrimaryMonitor();
+		const GLFWvidmode* video_mode = glfwGetVideoMode(primary_monitor);
+		int monitor_x, monitor_y;
+		glfwGetMonitorPos(primary_monitor, &monitor_x, &monitor_y);
+
 		m_window_handle = glfwCreateWindow(
 			static_cast<int>(m_window_data.m_width),
 			static_cast<int>(m_window_data.m_height),
@@ -82,6 +96,26 @@ namespace SPA {
 			return;
 		}
 
+		if (m_window_data.m_center_window) {
+			glfwSetWindowPos(m_window_handle,
+				monitor_x + (video_mode->width - m_window_data.m_width) / 2,
+				monitor_y + (video_mode->height - m_window_data.m_height) / 2
+			);
+
+			glfwSetWindowAttrib(m_window_handle, GLFW_RESIZABLE, m_window_data.m_window_resizeable ? GLFW_TRUE : GLFW_FALSE);
+		}
+
+		// Setup icon
+		GLFWimage icon;
+		int channels;
+		if (!m_window_data.m_icon_path.empty()) {
+			std::string icon_path_str = m_window_data.m_icon_path.string();
+			icon.pixels = stbi_load(icon_path_str.c_str(), &icon.width, &icon.height, &channels, 4);
+			glfwSetWindowIcon(m_window_handle, 1, &icon);
+			stbi_image_free(icon.pixels);
+		}
+
+
 		// Store window data pointer for callbacks, then set up callbacks
 		glfwSetWindowUserPointer(m_window_handle, &m_window_data);
 		SetupCallbacks();
@@ -98,6 +132,19 @@ namespace SPA {
 
 
 	void CWindow::SetupCallbacks() {
+		// Titlebar test hit callback
+		glfwSetTitlebarHitTestCallback(m_window_handle, [](GLFWwindow* a_window, int a_x, int a_y, int* a_hit) {
+			SWindowData& data = *(SWindowData*)glfwGetWindowUserPointer(a_window);
+			
+			if (data.m_titlebar_hit_test_function) {
+				*a_hit = data.m_titlebar_hit_test_function() ? 1 : 0;
+			}
+			else {
+				*a_hit = 0;
+			}
+		});
+
+
 		// Window resize callback
 		glfwSetWindowSizeCallback(m_window_handle, [](GLFWwindow* a_window, int a_width, int a_height) {
 			SWindowData& data = *(SWindowData*)glfwGetWindowUserPointer(a_window);
@@ -210,8 +257,26 @@ namespace SPA {
 		// Note: we don't call glfwTerminate here b/c there might be other windows active
 	}
 
+	void CWindow::ShowWindow() {
+		if (m_window_handle) {
+			glfwShowWindow(m_window_handle);
+		}
+	}
+
 	void CWindow::Maximize() {
 		glfwMaximizeWindow(m_window_handle);
+	}
+
+	void CWindow::Minimize() {
+		glfwIconifyWindow(m_window_handle);
+	}
+
+	void CWindow::Restore() {
+		glfwRestoreWindow(m_window_handle);
+	}
+	
+	bool CWindow::IsMaximized() const {
+		return static_cast<bool>(glfwGetWindowAttrib(m_window_handle, GLFW_MAXIMIZED));
 	}
 
 	const char** CWindow::GetRequiredInstanceExtensions(uint32_t& a_extensions_count) {

@@ -1,5 +1,6 @@
 #include "spapch.h"
 #include "Application.h"
+#include "PlatformInfo.h"
 //#include "ScamPA/ImGui/ImGuiLayer.h"
 
 #include <GLFW/glfw3.h>
@@ -71,13 +72,49 @@ namespace SPA {
 		m_is_running = false;
 	}
 
+	std::string CApplication::OpenFile(const char* a_filter) {
+		return m_file_dialogs->OpenFile(a_filter);
+	}
+
+	std::string CApplication::SaveFile(const char* a_filter, const char* a_default_extension) {
+		return m_file_dialogs->SaveFile(a_filter, a_default_extension);
+	}
+
+	float CApplication::GetTime() {
+		return (float)glfwGetTime();
+	}
+
 	CApplication& CApplication::GetApplicationInstance() {
 		SPA_CORE_ASSERT(s_instance, "(Application) App instance does not exist!");
 		return *s_instance;
 	}
 
-	float CApplication::GetTime() {
-		return (float)glfwGetTime();
+	const char* CApplication::GetConfigurationName() {
+		switch (CPlatformInfo::GetBuildConfiguration()) {
+			case EBuildConfigurationType::None:			break;
+			case EBuildConfigurationType::Debug:		return "Debug Build";
+			case EBuildConfigurationType::Release:		return "Release Build";
+			case EBuildConfigurationType::Distribution: return "Distribution Build";
+		}
+
+		SPA_CORE_WARN("(Application) Unknown build configuration!");
+		return "Unknown Build Configuration";
+	}
+	
+	const char* CApplication::GetPlatformName() {
+		switch (CPlatformInfo::GetOSPlatform()) {
+			case EOperatingSystemType::None:			break;
+			case EOperatingSystemType::Windows:			return "Windows x64";
+			case EOperatingSystemType::MacOS:			return "MacOS";
+			case EOperatingSystemType::Linux:			return "Linux";
+		}
+
+		SPA_CORE_WARN("(Application) Unknown OS platform!");
+		return "Unknown OS Platform";
+	}
+
+	const char* CApplication::GetApplicationVersion() {
+		return SPA_BUILD_VERSION;
 	}
 
 	void CApplication::SetMenubarCallback(const std::function<void()>& a_menubar_callback) {
@@ -85,7 +122,7 @@ namespace SPA {
 	}
 
 	void CApplication::RenderImGui() {
-		m_imgui_layer->BeginFrame(); 			// ImGui layer must call "BeginFrame" method before any additional ImGui calls are made
+		m_imgui_layer->BeginFrame(); 			// Must be called before any additional layer calls are made
 		m_imgui_layer->RenderDockspace();
 
 		// Render all layers' UI
@@ -93,7 +130,7 @@ namespace SPA {
 			layer->OnUIRender();
 		}
 
-		m_imgui_layer->EndFrame(); 			// End ImGui frame to prepare ImGui draw data
+		m_imgui_layer->EndFrame(); 				// End ImGui frame to prepare ImGui draw data
 
 	}
 
@@ -107,12 +144,21 @@ namespace SPA {
 
 		// Create the window
 		SWindowSpecification window_spec;
-		window_spec.m_title = m_specification.m_name;
-		window_spec.m_width = m_specification.m_width;
-		window_spec.m_height = m_specification.m_height;
+		window_spec.m_icon_path				= m_specification.m_icon_path;
+		window_spec.m_title					= m_specification.m_name;
+		window_spec.m_width					= m_specification.m_width;
+		window_spec.m_height				= m_specification.m_height;
+		window_spec.m_use_custom_titlebar	= m_specification.m_use_custom_titlebar;
+		window_spec.m_window_resizeable		= m_specification.m_window_resizeable;
+		window_spec.m_center_window			= m_specification.m_center_window;
 		m_window_handle = std::make_unique<CWindow>(window_spec);
-
 		m_window_handle->SetEventCallback(SPA_BIND_EVENT_FN(OnEvent));
+		m_window_handle->SetTitlebarHitTestCallback([this]() {
+			return m_imgui_layer->IsTitlebarHovered();
+		});
+
+		// Setup file dialogs
+		m_file_dialogs = IFileDialogs::Create();
 
 		// Setup vulkan context
 		CVulkanContext::SConfig vulkan_config;
@@ -163,13 +209,14 @@ namespace SPA {
 				SPA_CORE_ERROR("(Application) Failed to wait for device idle during shutdown!");
 			}
 		}
-		// Destroy renderer & swapchain smart ptrs
-		m_renderer.reset();
-		m_swapchain.reset();
-
+		
 		// Detach layers
 		m_layer_stack.PopAll();
-	
+
+		// Destroy renderer & swapchain smart ptrs
+		m_swapchain.reset();
+		m_renderer.reset();
+
 		// Additional cleanup
 		if (m_graphics_context) {
 			m_graphics_context->Shutdown();

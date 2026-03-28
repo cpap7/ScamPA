@@ -36,6 +36,7 @@
 #include <ScamPA/Audio/AudioDevice.h>
 #include <ScamPA/Audio/AudioInputDevice.h>
 #include <ScamPA/Audio/AudioOutputDevice.h>
+#include <ScamPA/Audio/AudioDevice.h>
 
 // ImGui
 #include <imgui.h>

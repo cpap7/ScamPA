@@ -10,6 +10,9 @@ namespace SPA {
 		spec.m_name = "ScamPA App";
 		spec.m_width = 1280;
 		spec.m_height = 720;
+		spec.m_use_custom_titlebar = true;
+		spec.m_window_resizeable = true;
+		spec.m_center_window = true;
 
 		SPA::CApplication* app = new SPA::CApplication(spec);
 		app->PushLayer<SPA::CAppLayer>();

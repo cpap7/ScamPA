@@ -35,8 +35,6 @@ namespace SPA {
 		CVulkanImage(uint32_t a_width, uint32_t height, EImageFormat a_format, const void* a_data = nullptr);
 		~CVulkanImage();
 
-		void Resize(uint32_t a_width, uint32_t a_height);
-
 		// Getters
 		inline uint32_t GetWidth() const				{ return m_width;			}
 		inline uint32_t GetHeight() const				{ return m_height;			}
@@ -44,6 +42,9 @@ namespace SPA {
 
 		// Setters
 		void SetData(const void* a_data);
+
+		static void* Decode(const void* a_buffer, uint64_t a_length, uint32_t& a_out_width, uint32_t& a_out_height);
+		void Resize(uint32_t a_width, uint32_t a_height);
 
 	private:
 		void AllocateMemory(uint64_t size);

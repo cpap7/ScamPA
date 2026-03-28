@@ -156,11 +156,10 @@ namespace SPA {
 
 	void CVulkanImage::Release() {
 		CApplication& app = CApplication::GetApplicationInstance();
+		VkDevice device = CApplication::GetApplicationInstance().GetRenderer().GetGraphicsContext().GetDevice();
 
-		app.GetRenderer().SubmitResourceFree([sampler = m_sampler, image_view = m_image_view, image = m_image,
-			memory = m_memory, staging_buffer = m_staging_buffer, staging_buffer_memory = m_staging_buffer_memory]()
-		{
-			VkDevice device = CApplication::GetApplicationInstance().GetRenderer().GetGraphicsContext().GetDevice();
+		app.GetRenderer().SubmitResourceFree([device, sampler = m_sampler, image_view = m_image_view, image = m_image,
+			memory = m_memory, staging_buffer = m_staging_buffer, staging_buffer_memory = m_staging_buffer_memory]() {
 
 			vkDestroySampler(device, sampler, nullptr);
 			vkDestroyImageView(device, image_view, nullptr);
@@ -273,6 +272,22 @@ namespace SPA {
 
 			app.GetRenderer().GetGraphicsContext().FlushCommandBuffer(command_buffer);
 		}
+	}
+
+	void* CVulkanImage::Decode(const void* a_buffer, uint64_t a_length, uint32_t & a_out_width, uint32_t & a_out_height) {
+		int width;
+		int height;
+		int channels;
+		uint8_t* data = nullptr;
+		uint64_t size = 0;
+
+		data = stbi_load_from_memory((const stbi_uc*)a_buffer, a_length, &width, &height, &channels, 4);
+		size = width * height * 4;
+
+		a_out_width = width;
+		a_out_height = height;
+
+		return data;
 	}
 
 	void CVulkanImage::Resize(uint32_t a_width, uint32_t a_height) {

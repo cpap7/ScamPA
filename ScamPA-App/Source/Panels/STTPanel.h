@@ -1,8 +1,8 @@
 #pragma once
 #include <ScamPA/Core/Panel.h>
+#include <ScamPA/Audio/DeviceSettings.h>
 
-#include "DeviceSettings.h"
-#include "../AIAgent/AIAgentContext.h"
+#include "../AIAgent/AIEngineManager.h"
 
 #include <string>
 #include <memory>
@@ -14,14 +14,14 @@ namespace SPA {
 		std::string m_last_transcript;
 		SAudioDeviceSettings m_device_settings;
 
-		CAIAgentContext& m_ai_agent_context;
+		CAIEngineManager& m_manager;
 		std::unique_ptr<IAudioDevice> m_audio_input_device;
 		
 		EAudioDeviceType m_selected_device_type = EAudioDeviceType::Loopback;
 		bool m_is_recording						= false;
 
 	public:
-		explicit CSTTPanel(CAIAgentContext& a_context);
+		explicit CSTTPanel(CAIEngineManager& a_manager);
 		~CSTTPanel();
 		
 		virtual void OnInit() override;

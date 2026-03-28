@@ -1,8 +1,8 @@
 #pragma once
 #include <ScamPA/Core/Panel.h>
+#include <ScamPA/Audio/DeviceSettings.h>
 
-#include "DeviceSettings.h"
-#include "../AIAgent/AIAgentContext.h"
+#include "../AIAgent/AIEngineManager.h"
 
 #include <memory>
 #include <cstdint>
@@ -14,13 +14,14 @@ namespace SPA {
 		char m_text_buffer[2048] = {};
 		SAudioDeviceSettings m_device_settings;
 
-		CAIAgentContext& m_ai_agent_context;
+		CAIEngineManager& m_manager;
 		std::unique_ptr<IAudioDevice> m_audio_output_device;
 		
-		float m_verbal_delay = 1.0f;
+		float m_verbal_delay	= 1.0f;
+		float m_noise_scale		= 1.0f;
 
 	public:
-		explicit CTTSPanel(CAIAgentContext& a_context);
+		explicit CTTSPanel(CAIEngineManager& a_manager);
 		~CTTSPanel();
 
 		virtual void OnInit() override;

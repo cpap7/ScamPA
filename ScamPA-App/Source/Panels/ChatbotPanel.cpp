@@ -56,7 +56,7 @@ namespace SPA {
 		EChatbotState state		= m_state_machine.GetState();
 
 		// Check if models are loaded
-		auto& context = m_state_machine.GetContext();
+		auto& context = m_state_machine.GetEngineManager();
 		if (!context.IsSTTInitialized() || !context.IsLLMInitialized() || !context.IsTTSInitialized()) {
 			// TODO: This is some ugly yan-dev-like code, so refactor later
 			

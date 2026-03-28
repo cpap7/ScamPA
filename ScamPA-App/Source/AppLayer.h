@@ -1,7 +1,7 @@
 #pragma once
 #include <ScamPA/Core/Layer.h>
 
-#include "AIAgent/AIAgentContext.h"
+#include "AIAgent/AIEngineManager.h"
 #include "AIAgent/ChatbotStateMachine.h"
 
 // Panels
@@ -15,7 +15,7 @@
 namespace SPA {
 	class CAppLayer : public ILayer {
 	private:
-		std::unique_ptr<CAIAgentContext> m_ai_agent_context;
+		std::unique_ptr<CAIEngineManager> m_manager;
 		std::unique_ptr<CChatbotStateMachine> m_chatbot_state_machine;
 
 		// Panels

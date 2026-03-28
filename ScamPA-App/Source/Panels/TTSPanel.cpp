@@ -2,12 +2,13 @@
 
 #include <ScamPA/Core/Logger.h>
 #include <ScamPA/Audio/AudioOutputDevice.h>
+#include <ScamPA/Core/Application.h>
 
 #include <imgui.h>
 
 namespace SPA {
-	CTTSPanel::CTTSPanel(CAIAgentContext& a_context) 
-		: m_ai_agent_context(a_context) {
+	CTTSPanel::CTTSPanel(CAIEngineManager& a_manager) 
+		: m_manager(a_manager) {
 		OnInit();
 	}
 
@@ -33,23 +34,49 @@ namespace SPA {
 
 	void CTTSPanel::OnUIRender() {
 		ImGui::Begin("Text-To-Speech Settings");
-		auto* tts_engine = m_ai_agent_context.GetTTSEngine();
+		auto* tts_engine = m_manager.GetTTSEngine();
 		if (!tts_engine) {
 			ImGui::TextColored(ImVec4(1, 1, 0, 1), "TTS Engine Not Loaded");
+			std::string tts_model_path;
+			std::string tts_model_json_path;
+
 			if (ImGui::Button("Load TTS Model")) {
-				m_ai_agent_context.InitTTS();
+				tts_model_path = CApplication::GetApplicationInstance().OpenFile("Piper ONNX Model (*.onnx)\0*.onnx\0\0");
+			}
+			if (ImGui::Button("Load TTS Model Config")) {
+				tts_model_json_path = CApplication::GetApplicationInstance().OpenFile("JSON Config (*json)\0*.json");
+			}
+			if (ImGui::Button("Reload TTS Engine")) {
+				if (!tts_model_path.empty() && !tts_model_json_path.empty()) {
+					m_manager.LoadTTS(tts_model_path, tts_model_json_path);
+				}
 			}
 			ImGui::End();
 			return;
 		}
 		ImGui::TextColored(ImVec4(0, 1, 0, 1), "TTS Engine Loaded");
+		std::string tts_model_path;
+		std::string tts_model_json_path;
+
+		if (ImGui::Button("Load TTS Model")) {
+			tts_model_path = CApplication::GetApplicationInstance().OpenFile("Piper ONNX Model (*.onnx)\0*.onnx\0\0");
+		}
+		if (ImGui::Button("Load TTS Model Config")) {
+			tts_model_json_path = CApplication::GetApplicationInstance().OpenFile("JSON Config (*.json)\0*.json");
+		}
+		if (ImGui::Button("Reload TTS Engine")) {
+			if (!tts_model_path.empty() && !tts_model_json_path.empty()) {
+				m_manager.LoadTTS(tts_model_path, tts_model_json_path);
+			}
+		}
+		
 		ImGui::TextDisabled("Model Path ");
 		ImGui::SameLine();
-		ImGui::InputText("##ttsmodelonnxpath", (char*)m_ai_agent_context.GetTTSOnnxModelPath().c_str(), ImGuiInputTextFlags_ReadOnly);
+		ImGui::InputText("##ttsmodelonnxpath", (char*)m_manager.GetTTSOnnxModelPath().c_str(), ImGuiInputTextFlags_ReadOnly);
 		
 		ImGui::TextDisabled("Config Path");
 		ImGui::SameLine();
-		ImGui::InputText("##ttsmodelonnxjsonpath", (char*)m_ai_agent_context.GetTTSOnnxModelJsonPath().c_str(), ImGuiInputTextFlags_ReadOnly);
+		ImGui::InputText("##ttsmodelonnxjsonpath", (char*)m_manager.GetTTSOnnxModelJsonPath().c_str(), ImGuiInputTextFlags_ReadOnly);
 
 
 		ImGui::InputTextMultiline("##tts_text", m_text_buffer, sizeof(m_text_buffer), ImVec2(-1, 100));
@@ -68,17 +95,20 @@ namespace SPA {
 			}
 		}
 
-
 		ImGui::Separator();
+
 		ImGui::Text("Voice Settings");
 
 		if (ImGui::SliderFloat("Verbal Delay", &m_verbal_delay, 0.5f, 2.0f, "%.2f")) {
 			tts_engine->SetSpeed(m_verbal_delay);
 		}
+		if (ImGui::SliderFloat("Noise Scale", &m_noise_scale, 0.5f, 2.0f, "%.2f")) {
+			tts_engine->SetNoiseScale(m_noise_scale);
+		}
 
 		ImGui::Separator();
 
-		ImGui::Text("Device Settings");
+		ImGui::Text("Output Device Settings");
 
 		{ // Output device selection
 			const char* preview = "System Default";

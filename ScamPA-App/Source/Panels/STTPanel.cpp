@@ -1,23 +1,27 @@
 #include "STTPanel.h"
 #include <ScamPA/Core/Logger.h>
 #include <ScamPA/Audio/AudioInputDevice.h>
+#include <ScamPA/Core/Application.h>
 
 #include <imgui.h>
 
 namespace SPA {
 
-	static std::vector<float> ConvertSamples(const std::vector<int16_t>& a_raw_samples) {
-		std::vector<float> float_samples(a_raw_samples.size());
+	namespace Utilities {
+		static std::vector<float> ConvertToFloatSamples(const std::vector<int16_t>& a_raw_samples) {
+			std::vector<float> float_samples(a_raw_samples.size());
 
-		for (size_t i{}; i < a_raw_samples.size(); ++i) {
-			float_samples[i] = static_cast<float>(a_raw_samples[i] / 32768.0f);
+			for (size_t i{}; i < a_raw_samples.size(); ++i) {
+				float_samples[i] = static_cast<float>(a_raw_samples[i] / 32768.0f);
+			}
+
+			return float_samples;
 		}
 
-		return float_samples;
 	}
 
-	CSTTPanel::CSTTPanel(CAIAgentContext& a_context) 
-		: m_ai_agent_context(a_context) {
+	CSTTPanel::CSTTPanel(CAIEngineManager& a_manager)
+		: m_manager(a_manager) {
 		OnInit();
 	}
 
@@ -30,7 +34,7 @@ namespace SPA {
 		config.m_sample_rate	= 16000; // whisper.cpp default
 		config.m_channels		= 1;
 		config.m_sample_format	= EAudioSampleFormat::Int16;
-		config.m_device_type	= m_selected_device_type; // Default = loopback (audio from speakers0
+		config.m_device_type	= m_selected_device_type; // Default = loopback (audio from speakers)
 		
 		m_audio_input_device = IAudioDevice::Create(config);
 		
@@ -44,11 +48,14 @@ namespace SPA {
 	void CSTTPanel::OnUIRender() {
 		ImGui::Begin("Speech-To-Text Settings");
 
-		auto* stt_engine = m_ai_agent_context.GetSTTEngine();
+		auto* stt_engine = m_manager.GetSTTEngine();
 		if (!stt_engine) {
 			ImGui::TextColored(ImVec4(1, 1, 0, 1), "STT Engine Not Loaded");
 			if (ImGui::Button("Load STT Model")) {
-				m_ai_agent_context.InitSTT();
+				std::string stt_model_path = CApplication::GetApplicationInstance().OpenFile("Whisper Model (*.bin)\0*.bin\0\0");
+				if (!stt_model_path.empty()) {
+					m_manager.LoadSTT(stt_model_path);
+				}
 			}
 			ImGui::End();
 			return;
@@ -56,8 +63,13 @@ namespace SPA {
 		ImGui::TextColored(ImVec4(0, 1, 0, 1), "STT Engine Loaded");
 		ImGui::TextDisabled("Model Path");
 		ImGui::SameLine();
-		ImGui::InputText("##sttmodelpath", (char*)m_ai_agent_context.GetSTTModelPath().c_str(), ImGuiInputTextFlags_ReadOnly);
-
+		ImGui::InputText("##sttmodelpath", (char*)m_manager.GetSTTModelPath().c_str(), ImGuiInputTextFlags_ReadOnly);
+		if (ImGui::Button("Load STT Model")) {
+			std::string stt_model_path = CApplication::GetApplicationInstance().OpenFile("Whisper Model (*.bin)\0*.bin\0\0");
+			if (!stt_model_path.empty()) {
+				m_manager.LoadSTT(stt_model_path);
+			}
+		}
 
 		ImGui::Separator();
 
@@ -68,12 +80,12 @@ namespace SPA {
 			return;
 		}
 
-		ImGui::Text("Device Settings");
+		ImGui::Text("Input Audio Device Settings");
 		
 		{ // Device type selection
 			static const char* device_type_labels[] = {
-				"Capture",
-				"Loopback"
+				"Capture (Mic)",
+				"Loopback (Speakers)"
 			};
 			
 			static const EAudioDeviceType device_type_values[] = {
@@ -192,7 +204,7 @@ namespace SPA {
 				// Drain samples & convert to float for whisper.cpp
 				std::vector<int16_t> raw_samples = input_device->ConsumeBuffer();
 				if (!raw_samples.empty()) { 
-					std::vector<float> float_samples = ConvertSamples(raw_samples);
+					std::vector<float> float_samples = Utilities::ConvertToFloatSamples(raw_samples);
 					VoxBox::STranscriptResult result = stt_engine->Transcribe(float_samples);
 					
 					m_last_transcript = result.Success() ? result.m_text : "";

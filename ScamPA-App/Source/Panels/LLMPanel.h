@@ -2,7 +2,7 @@
 #include <ScamPA/Core/Panel.h>
 #include <ScamPA/Audio/AudioDevice.h>
 
-#include "../AIAgent/AIAgentContext.h"
+#include "../AIAgent/AIEngineManager.h"
 
 #include <string>
 #include <vector>
@@ -15,10 +15,10 @@ namespace SPA {
 		std::string m_pending_response;
 		std::vector<std::pair<std::string, std::string>> m_chat_history; // { user, agent }
 
-		CAIAgentContext& m_ai_agent_context;
+		CAIEngineManager& m_manager;
 		
 	public:
-		explicit CLLMPanel(CAIAgentContext& a_context);
+		explicit CLLMPanel(CAIEngineManager& a_manager);
 		
 		virtual void OnInit() override;
 		virtual void OnShutdown() override;

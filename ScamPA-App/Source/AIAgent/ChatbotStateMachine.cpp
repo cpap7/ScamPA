@@ -22,7 +22,7 @@ namespace SPA {
 				case EChatbotState::Error:				state_str = "ERROR";		break;
 				default:								return "UNKNOWN";
 			}
-			return state_str;
+ 			return state_str.empty() ? "UNKNOWN" : state_str;
 		}
 
 		static std::vector<float> ConvertSamples(const std::vector<int16_t>& a_raw_samples) {
@@ -36,8 +36,8 @@ namespace SPA {
 		}
 	}
 
-	CChatbotStateMachine::CChatbotStateMachine(CAIAgentContext& a_context)
-		: m_context(a_context) {
+	CChatbotStateMachine::CChatbotStateMachine(CAIEngineManager& a_manager)
+		: m_manager(a_manager) {
 		Init();
 	}
 
@@ -107,35 +107,35 @@ namespace SPA {
 		// TODO: Consider using nested switch
 		switch (m_state.load()) {
 			case EChatbotState::Idle: {
-				if (a_event == EChatbotEvent::Record) { ListenAndWait(); }
+				if (a_event == EChatbotEvent::Record)		{ ListenAndWait(); }
 				break;
 			}
 			case EChatbotState::Listening: {
-				if (a_event == EChatbotEvent::Infer) { StopAndInfer(); }
-				else if (a_event == EChatbotEvent::Cancel) { CancelAll(); }
+				if (a_event == EChatbotEvent::Infer)		{ StopAndInfer(); }
+				else if (a_event == EChatbotEvent::Cancel)	{ CancelAll(); }
 				break;
 			}
 
 			case EChatbotState::Transcribing:
 			case EChatbotState::Inferring: {
-				if (a_event == EChatbotEvent::Cancel) { CancelAll(); }
+				if (a_event == EChatbotEvent::Cancel)		{ CancelAll(); }
 				break;
 			}
 
 			case EChatbotState::Speaking: {
 				if (a_event == EChatbotEvent::PlaybackDrained) {
 					SPA_CORE_INFO("(Chatbot FSM) Playback complete");
-					if (m_chat_loop) { ListenAndWait(); }
+					if (m_chat_loop)						{ ListenAndWait(); }
 				}
-				else if (a_event == EChatbotEvent::Cancel) { CancelAll(); }
+				else if (a_event == EChatbotEvent::Cancel)	{ CancelAll(); }
 				break;
 			}
 
 			case EChatbotState::Error: { 
 				// NOTE: Error logs will be handled & show up within the console 
 				// so we can just quickly transition states to avoid hiccups
-				if (a_event == EChatbotEvent::Record) { ListenAndWait(); }
-				else if (a_event == EChatbotEvent::Cancel) { Transition(EChatbotState::Idle); }
+				if (a_event == EChatbotEvent::Record)		{ ListenAndWait(); }
+				else if (a_event == EChatbotEvent::Cancel)	{ Transition(EChatbotState::Idle); }
 				break;
 			}
 		}
@@ -171,7 +171,7 @@ namespace SPA {
 			return;
 		}
 
-		m_cancel_requested = false;
+		m_cancel_requested.store(false);
 		m_speech_detected = false;
 		m_silence_timer.Reset();
 		Transition(EChatbotState::Listening);
@@ -201,9 +201,9 @@ namespace SPA {
 	}
 
 	void CChatbotStateMachine::RunPipeline(std::vector<int16_t> a_raw_audio) {
-		auto* stt_engine = m_context.GetSTTEngine();
-		auto* llm_engine = m_context.GetLLMEngine();
-		auto* tts_engine = m_context.GetTTSEngine();
+		auto* stt_engine = m_manager.GetSTTEngine();
+		auto* llm_engine = m_manager.GetLLMEngine();
+		auto* tts_engine = m_manager.GetTTSEngine();
 
 		if (!stt_engine || !llm_engine || !tts_engine) {
 			SetError("One or more AI engines are not loaded!");
@@ -246,7 +246,6 @@ namespace SPA {
 		// Setup token callback for sentence-level TTS chunks
 		llm_engine->SetTokenCallback([this](int /*a_id*/, const char* a_text, int a_type, const float* /*a_probs*/) -> int {
 			if (m_cancel_requested) {
-				//Transition(EChatbotState::Idle);
 				return 0;
 			}
 
@@ -256,7 +255,7 @@ namespace SPA {
 			}
 
 			return 1;
-			});
+		});
 
 		VoxBox::SInferenceResult llm_result = llm_engine->Query(transcript);
 		llm_engine->SetTokenCallback(nullptr);
@@ -294,7 +293,7 @@ namespace SPA {
 		}
 
 		// Stop STT
-		auto* stt_engine = m_context.GetSTTEngine();
+		auto* stt_engine = m_manager.GetSTTEngine();
 		if (stt_engine) {
 			stt_engine->Cancel();
 		}
@@ -337,10 +336,12 @@ namespace SPA {
 
 		// Synthesize audio, then queue audio after an ending punctuation is found within the sentence
 		if (!m_fsm_token_buffer.m_current_sentence.empty() && Utilities::IsEndOfSentence(m_fsm_token_buffer.m_current_sentence.back())) {
-			auto* tts_engine = m_context.GetTTSEngine();
+			auto* tts_engine = m_manager.GetTTSEngine();
 			auto* output_device = static_cast<CAudioOutputDevice*>(m_audio_output_device.get());
+
 			if (tts_engine && output_device) {
 				VoxBox::SAudioResult audio = tts_engine->Synthesize(m_fsm_token_buffer.m_current_sentence.c_str());
+				
 				if (audio.Success()) {
 					SPA_CORE_INFO("(Chatbot FSM) Generated response: {0}", m_fsm_token_buffer.m_current_sentence);
 					output_device->SubmitSamples(audio.SampleData(), audio.SampleCount());
@@ -363,10 +364,11 @@ namespace SPA {
 		}
 		
 		// Synthesize & queue audio for the rest of the response before clearing
-		auto* tts_engine = m_context.GetTTSEngine();
+		auto* tts_engine = m_manager.GetTTSEngine();
 		auto* output_device = static_cast<CAudioOutputDevice*>(m_audio_output_device.get());
 		if (tts_engine && output_device) {
 			VoxBox::SAudioResult audio = tts_engine->Synthesize(m_fsm_token_buffer.m_current_sentence);
+			
 			if (audio.Success()) {
 				output_device->SubmitSamples(audio.SampleData(), audio.SampleCount());
 				

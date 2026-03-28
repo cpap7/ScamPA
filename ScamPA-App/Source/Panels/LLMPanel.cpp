@@ -1,10 +1,11 @@
 #include "LLMPanel.h"
+#include <ScamPA/Core/Application.h>
 
 #include <imgui.h>
 
 namespace SPA {
-	CLLMPanel::CLLMPanel(CAIAgentContext& a_context)
-		: m_ai_agent_context(a_context) {
+	CLLMPanel::CLLMPanel(CAIEngineManager& a_manager)
+		: m_manager(a_manager) {
 
 	}
 
@@ -18,11 +19,14 @@ namespace SPA {
 
 	void CLLMPanel::OnUIRender() {
 		ImGui::Begin("LLM Settings");
-		auto* llm_engine = m_ai_agent_context.GetLLMEngine();
+		auto* llm_engine = m_manager.GetLLMEngine();
 		if (!llm_engine) {
 			ImGui::TextColored(ImVec4(1, 1, 0, 1), "LLM Engine Not Loaded");
 			if (ImGui::Button("Load LLM Model")) {
-				m_ai_agent_context.InitLLM();
+				std::string llm_model_path = CApplication::GetApplicationInstance().OpenFile("Llama Model (*.gguf)\0*.gguf\0\0");
+				if (!llm_model_path.empty()) {
+					m_manager.LoadLLM(llm_model_path);
+				}
 			}
 			ImGui::End();
 			return;
@@ -31,8 +35,13 @@ namespace SPA {
 		ImGui::TextColored(ImVec4(0, 1, 0, 1), "LLM Engine Loaded");
 		ImGui::TextDisabled("Model Path");
 		ImGui::SameLine();
-		ImGui::InputText("##llmmodelpath", (char*)m_ai_agent_context.GetLLMModelPath().c_str(), ImGuiInputTextFlags_ReadOnly);
-
+		ImGui::InputText("##llmmodelpath", (char*)m_manager.GetLLMModelPath().c_str(), ImGuiInputTextFlags_ReadOnly);
+		if (ImGui::Button("Load LLM Model")) {
+			std::string llm_model_path = CApplication::GetApplicationInstance().OpenFile("Llama Model (*.gguf)\0*.gguf\0\0");
+			if (!llm_model_path.empty()) {
+				m_manager.LoadLLM(llm_model_path);
+			}
+		}
 
 		ImGui::Separator();
 

@@ -1,5 +1,5 @@
 #pragma once
-#include "AIAgentContext.h"
+#include "AIEngineManager.h"
 
 #include <ScamPA/Audio/AudioDevice.h>
 #include <ScamPA/Utilities/Timer.h>
@@ -74,7 +74,7 @@ namespace SPA {
 		std::unique_ptr<IAudioDevice> m_audio_input_device;
 		std::unique_ptr<IAudioDevice> m_audio_output_device;
 
-		CAIAgentContext& m_context;
+		CAIEngineManager& m_manager;
 
 		// TODO: silence = end of input
 		CTimer m_silence_timer;
@@ -87,7 +87,7 @@ namespace SPA {
 		std::atomic<bool> m_chat_loop{ true }; // Tracks if the chat should loop back to recording state after speaking state is done
 	
 	public:
-		explicit CChatbotStateMachine(CAIAgentContext& a_context);
+		explicit CChatbotStateMachine(CAIEngineManager& a_manager);
 		~CChatbotStateMachine();
 
 		void Init();
@@ -96,8 +96,8 @@ namespace SPA {
 		void OnUpdate(); // Called each frame by the panel
 		void OnEvent(EChatbotEvent a_event); // Transition table
 
-		inline EChatbotState GetState() const	{ return m_state.load(); }
-		inline CAIAgentContext& GetContext()	{ return m_context; }
+		inline EChatbotState GetState() const		{ return m_state.load();	}
+		inline CAIEngineManager& GetEngineManager()	{ return m_manager;			}
 
 		// Pollable results
 		// NOTE: We return copies here since the worker thread may be writing to m_fsm_token_buffer strings

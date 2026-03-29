@@ -31,6 +31,7 @@ namespace SPA {
 			return;
 		}
 		auto* llm_engine = m_manager.GetLLMEngine();
+		//llm_engine->SnapshotUpdate();
 		llm_engine->SnapshotToFile(a_file_path);
 	}
 
@@ -40,6 +41,8 @@ namespace SPA {
 		}
 		auto* llm_engine = m_manager.GetLLMEngine();
 		llm_engine->SnapshotFromFile(a_file_path);
+		//llm_engine->SnapshotUpdate();
+		llm_engine->SnapshotRestore();
 	}
 
 	void CChatbotSerializer::SerializeSessionYAML(const SChatSession& a_session, const std::string& a_file_path) {

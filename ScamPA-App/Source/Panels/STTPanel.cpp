@@ -64,12 +64,13 @@ namespace SPA {
 		ImGui::TextDisabled("Model Path");
 		ImGui::SameLine();
 		ImGui::InputText("##sttmodelpath", (char*)m_manager.GetSTTModelPath().c_str(), ImGuiInputTextFlags_ReadOnly);
-		if (ImGui::Button("Load STT Model")) {
+		if (ImGui::Button("Load Model")) {
 			std::string stt_model_path = CApplication::GetApplicationInstance().OpenFile("Whisper Model (*.bin)\0*.bin\0\0");
 			if (!stt_model_path.empty()) {
 				m_manager.LoadSTT(stt_model_path);
 			}
 		}
+
 
 		ImGui::Separator();
 

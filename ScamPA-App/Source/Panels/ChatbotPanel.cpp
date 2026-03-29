@@ -1,4 +1,6 @@
 #include "ChatbotPanel.h"
+#include "../Serialization/ChatbotSerializer.h"
+#include <ScamPA/Core/Application.h>
 
 #include <imgui.h>
 
@@ -58,7 +60,7 @@ namespace SPA {
 		// Check if models are loaded
 		auto& context = m_state_machine.GetEngineManager();
 		if (!context.IsSTTInitialized() || !context.IsLLMInitialized() || !context.IsTTSInitialized()) {
-			// TODO: This is some ugly yan-dev-like code, so refactor later
+			// TODO: This is some ugly yandev-like code, so refactor later
 			
 			// STT
 			if (!context.IsSTTInitialized()) {
@@ -81,18 +83,22 @@ namespace SPA {
 				ImGui::TextColored(ImVec4(1, 0, 0, 1), "Text-To-Speech Engine: Not Loaded");
 			}
 			else {
-				ImGui::TextColored(ImVec4(0, 1, 0, 1), "Text-To-Speech Model Engine: Loaded");
+				ImGui::TextColored(ImVec4(0, 1, 0, 1), "Text-To-Speech Engine: Loaded");
 			}
 
 			ImGui::End();
 			return;
 		}
 
+		m_state_machine.OnUpdate();
+
 		// Status
 		std::string status_label	= Utilities::UpdateStatusLabel(state);
 		ImVec4 status_color			= Utilities::UpdateStatusColor(state);
 
 		ImGui::TextColored(status_color, "Status: %s", status_label.c_str());
+		ImGui::Separator();
+		ImGui::TextDisabled("Session UUID: %llx", m_active_session.m_uuid);
 		ImGui::Separator();
 
 		// Controls
@@ -106,11 +112,7 @@ namespace SPA {
 				m_state_machine.OnEvent(EChatbotEvent::Infer);		
 			}
 		}
-		if (state == EChatbotState::Speaking) {
-			m_state_machine.OnUpdate();
-			UpdateChatLog();
-		}
-
+	
 		if (!(state == EChatbotState::Idle)) {
 			ImGui::SameLine();
 			if (ImGui::Button("Cancel")) {
@@ -141,12 +143,32 @@ namespace SPA {
 		ImGui::BeginChild("ChatbotHistory", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()), true);
 		ImGui::Text("Chat History");
 		ImGui::Separator();
-		for (const auto& [prompt_msg, agent_msg] : m_chat_log) {
-			ImGui::TextWrapped("Prompt: %s", prompt_msg.c_str());			
-			ImGui::TextWrapped("Agent: %s", agent_msg.c_str());
+		for (const auto& exchange : m_active_session.m_exchanges) {
+			ImGui::TextWrapped("Prompt: %s", exchange.m_prompt.c_str());			
+			ImGui::TextWrapped("Agent: %s", exchange.m_response.c_str());
 			ImGui::Separator();
 		}
 		ImGui::EndChild();
+
+		if (ImGui::Button("Clear Chat History")) {
+			m_active_session.m_exchanges.clear();
+		}
+
+		if (ImGui::Button("Save (YAML)")) {
+			SaveToYAML();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Load (YAML)")) {
+			LoadFromYAML();
+		}
+
+		if (ImGui::Button("Save (JSON)")) {
+			SaveToJSON();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Load (JSON)")) {
+			LoadFromJSON();
+		}
 
 		// Display error in footer
 		if (state == EChatbotState::Error && !m_error.empty()) {
@@ -172,11 +194,48 @@ namespace SPA {
 		EChatbotState state = m_state_machine.GetState();
 		if (state == EChatbotState::Listening) {
 			if (!m_stt_transcript.empty() && !m_llm_response.empty()) { // Commit to history
-				m_chat_log.emplace_back(std::move(m_stt_transcript), std::move(m_llm_response));
+				//m_chat_log.emplace_back(std::move(m_stt_transcript), std::move(m_llm_response));
+				m_active_session.AddExchange(m_stt_transcript, m_llm_response);
 			}
 			m_stt_transcript.clear();
 			m_llm_response.clear();
 			m_error.clear();
+		}
+	}
+
+	void CChatbotPanel::SaveToYAML() {
+		std::string file_path = CApplication::GetApplicationInstance().SaveFile("YAML File (*.yaml)\0*.yaml\0", "yaml");
+		
+		if (!file_path.empty()) {
+			CChatbotSerializer serializer(m_state_machine.GetEngineManager());
+			serializer.SerializeSession(m_active_session, file_path, ESerializationFormat::YAML);
+		}
+	}
+	
+	void CChatbotPanel::SaveToJSON() {
+		std::string file_path = CApplication::GetApplicationInstance().SaveFile("JSON File (*.json)\0*.json\0", "json");
+		
+		if (!file_path.empty()) {
+			CChatbotSerializer serializer(m_state_machine.GetEngineManager());
+			serializer.SerializeSession(m_active_session, file_path, ESerializationFormat::JSON);
+		}
+	}
+
+	void CChatbotPanel::LoadFromYAML() {
+		std::string file_path = CApplication::GetApplicationInstance().OpenFile("YAML File (*.yaml)\0*.yaml\0");
+		
+		if (!file_path.empty()) {
+			CChatbotSerializer serializer(m_state_machine.GetEngineManager());
+			SetActiveSession(serializer.DeserializeSession(file_path, ESerializationFormat::YAML));
+		}
+	}
+
+	void CChatbotPanel::LoadFromJSON() {
+		std::string file_path = CApplication::GetApplicationInstance().OpenFile("JSON File (*.json)\0*.json\0");
+		
+		if (!file_path.empty()) {
+			CChatbotSerializer serializer(m_state_machine.GetEngineManager());
+			SetActiveSession(serializer.DeserializeSession(file_path, ESerializationFormat::JSON));
 		}
 	}
 }

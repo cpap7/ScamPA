@@ -23,6 +23,11 @@ namespace SPA {
 		virtual void OnInit() override;
 		virtual void OnShutdown() override;
 		virtual void OnUIRender() override;
+
+	private:
+		void SaveContextSnapshot();
+		void LoadContextSnapshot();
+
 	};
 
 }

@@ -2,6 +2,7 @@
 #include <ScamPA/Core/Application.h>
 
 #include <imgui.h>
+#include "../Serialization/ChatbotSerializer.h"
 
 namespace SPA {
 	CLLMPanel::CLLMPanel(CAIEngineManager& a_manager)
@@ -77,8 +78,36 @@ namespace SPA {
 				m_chat_history.emplace_back(prompt, result.m_text);
 			}
 		}
+
+		if (ImGui::Button("Save Context Snapshot")) {
+			SaveContextSnapshot();
+		}
+		
+		ImGui::SameLine();
+		
+		if (ImGui::Button("Load Context Snapshot")) {
+			LoadContextSnapshot();
+		}
 		
 
 		ImGui::End();
+	}
+
+	void CLLMPanel::SaveContextSnapshot() {
+		std::string file_path = CApplication::GetApplicationInstance().SaveFile("BIN File (*.bin)\0*.bin\0", "bin");
+
+		if (!file_path.empty()) {
+			CChatbotSerializer serializer(m_manager);
+			serializer.SerializeAIContextSnapshot(file_path);
+		}
+	}
+
+	void CLLMPanel::LoadContextSnapshot() {
+		std::string file_path = CApplication::GetApplicationInstance().OpenFile("BIN File (*.bin)\0*.bin\0");
+
+		if (!file_path.empty()) {
+			CChatbotSerializer serializer(m_manager);
+			serializer.DeserializeAIContextSnapshot(file_path);
+		}
 	}
 }

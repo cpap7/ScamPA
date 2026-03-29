@@ -2,20 +2,21 @@
 #include <ScamPA/Core/Panel.h>
 
 #include "../AIAgent/ChatbotStateMachine.h"
+#include "../Serialization/ChatComponents.h"
 
 #include <string>
 #include <vector>
 
 namespace SPA {
-	using ChatLog = std::vector<std::pair<std::string, std::string>>;
 
 	class CChatbotPanel : public IPanel {
 	private:
+		SChatSession m_active_session;
+
 		// Copies of pollable results which are updated each frame
 		std::string m_stt_transcript;
 		std::string m_llm_response;
 		std::string m_error;
-		ChatLog m_chat_log;
 
 		CChatbotStateMachine& m_state_machine;
 
@@ -30,9 +31,18 @@ namespace SPA {
 
 		inline bool IsPipelineActive() { return (m_state_machine.GetState() == EChatbotState::Inferring) || (m_state_machine.GetState() == EChatbotState::Speaking); }
 
+		inline const SChatSession& GetActiveSession() const { return m_active_session; }
+		inline void SetActiveSession(SChatSession a_session) { m_active_session = std::move(a_session); }
+
 	private: // Helpers
 		void UpdateChatLog();
 		void CommitChatLog();
+
+		void SaveToYAML();
+		void SaveToJSON();
+
+		void LoadFromYAML();
+		void LoadFromJSON();
 	};
 }
 

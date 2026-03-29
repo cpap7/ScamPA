@@ -58,17 +58,7 @@ namespace SPA {
 		std::string tts_model_path;
 		std::string tts_model_json_path;
 
-		if (ImGui::Button("Load TTS Model")) {
-			tts_model_path = CApplication::GetApplicationInstance().OpenFile("Piper ONNX Model (*.onnx)\0*.onnx\0\0");
-		}
-		if (ImGui::Button("Load TTS Model Config")) {
-			tts_model_json_path = CApplication::GetApplicationInstance().OpenFile("JSON Config (*.json)\0*.json");
-		}
-		if (ImGui::Button("Reload TTS Engine")) {
-			if (!tts_model_path.empty() && !tts_model_json_path.empty()) {
-				m_manager.LoadTTS(tts_model_path, tts_model_json_path);
-			}
-		}
+		
 		
 		ImGui::TextDisabled("Model Path ");
 		ImGui::SameLine();
@@ -78,6 +68,19 @@ namespace SPA {
 		ImGui::SameLine();
 		ImGui::InputText("##ttsmodelonnxjsonpath", (char*)m_manager.GetTTSOnnxModelJsonPath().c_str(), ImGuiInputTextFlags_ReadOnly);
 
+		if (ImGui::Button("Load Model")) {
+			tts_model_path = CApplication::GetApplicationInstance().OpenFile("Piper ONNX Model (*.onnx)\0*.onnx\0\0");
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Load Config")) {
+			tts_model_json_path = CApplication::GetApplicationInstance().OpenFile("JSON Config (*.json)\0*.json");
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Reload Engine")) {
+			if (!tts_model_path.empty() && !tts_model_json_path.empty()) {
+				m_manager.LoadTTS(tts_model_path, tts_model_json_path);
+			}
+		}
 
 		ImGui::InputTextMultiline("##tts_text", m_text_buffer, sizeof(m_text_buffer), ImVec2(-1, 100));
 		if (ImGui::Button("Synthesize Audio") && m_text_buffer[0] != '\0') {

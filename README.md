@@ -1,4 +1,6 @@
-![Banner](Resources/Branding/scampa_banner_compressed.png)
+<p align="center">
+  <img src="Resources/Branding/scampa_logo_circle.png" alt="Banner">
+</p>
 
 # ScamPA - The Scam Preventing Agent
 ScamPA is a simple, offline C++ application designed with the purpose of being able to hinder the possibility of potential phone scams by utilizing ML bots to automate calls with malicious telemarketers.

@@ -21,6 +21,10 @@ namespace SPA {
 		if (!a_paths.m_tts_model_onnx_path.empty() && !a_paths.m_tts_model_onnx_json_path.empty()) {
 			LoadTTS(a_paths.m_tts_model_onnx_path, a_paths.m_tts_model_onnx_json_path);
 		}
+
+		//if (IsAllInitialized()) {
+		//	SPA_CLIENT_INFO("(AI Engine Manager) AI Engines loaded successfully!");
+		//}
 	}
 
 	void CAIEngineManager::LoadSTT(const std::string& a_stt_model_path) {
@@ -41,12 +45,6 @@ namespace SPA {
 			m_stt_engine = VoxBox::CSTTEngine::Create(stt_config);
 			
 			m_stt_engine_loading.store(false); // Reset
-			
-			if (m_stt_engine) {
-				if (IsAllInitialized()) {
-					SPA_CLIENT_INFO("(AI Engine Manager) AI Engines loaded successfully!");
-				}
-			}
 		});
 	}
 
@@ -69,12 +67,6 @@ namespace SPA {
 			m_llm_engine = VoxBox::CLLMEngine::Create(llm_config);
 
 			m_llm_engine_loading.store(false); // Reset
-
-			if (m_llm_engine) {
-				if (IsAllInitialized()) {
-					SPA_CLIENT_INFO("(AI Engine Manager) AI Engines loaded successfully!");
-				}
-			}
 		});		
 	}
 
@@ -99,12 +91,6 @@ namespace SPA {
 			m_tts_engine = VoxBox::CTTSEngine::Create(tts_config);
 
 			m_tts_engine_loading.store(false); // Reset
-
-			if (m_tts_engine) {
-				if (IsAllInitialized()) {
-					SPA_CLIENT_INFO("(AI Engine Manager) AI Engines loaded successfully!");
-				}
-			}
 		});
 	}
 

@@ -34,12 +34,12 @@ namespace SPA {
 	*/
 
 	enum class EChatbotState : uint8_t {
-		Idle = 0,		// Default initial state / reset state
+		Idle = 0,			// Default initial state / reset state
 		
-		Listening,		// Capturing audio input
-		Transcribing,	// STT in progress
-		Inferring,		// LLM generating a response
-		Speaking,		// TTS playback draining
+		Listening,			// Capturing audio input
+		Transcribing,		// STT in progress
+		Inferring,			// LLM generating a response
+		Speaking,			// TTS playback draining
 
 		Error
 	};

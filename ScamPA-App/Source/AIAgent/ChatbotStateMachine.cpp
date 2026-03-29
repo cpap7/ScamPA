@@ -98,9 +98,7 @@ namespace SPA {
 			if (output_device->GetBufferedSampleCount() == 0) { // Check if the audio samples are drained
 				OnEvent(EChatbotEvent::PlaybackDrained);
 			}
-			
 		}
-
 	}
 
 	void CChatbotStateMachine::OnEvent(EChatbotEvent a_event) {

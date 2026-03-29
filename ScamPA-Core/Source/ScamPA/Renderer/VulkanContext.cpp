@@ -1,5 +1,6 @@
 #include "spapch.h"
 #include "VulkanContext.h"
+#include <imgui.h>
 
 namespace SPA {
 
@@ -126,7 +127,7 @@ namespace SPA {
 #else
 		// Create Vulkan Instance without any debug feature
 		error = vkCreateInstance(&create_info, m_allocator, &m_instance);
-		CheckVkResult(error);
+		Utilities::CheckVkResult(error);
 		IM_UNUSED(m_debug_report);
 #endif
 

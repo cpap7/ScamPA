@@ -27,17 +27,17 @@
 
 	#ifdef SPA_DIST
 
-	#include <Windows.h>
+		#include <Windows.h>
 
-	int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmdshow) {
-		return SPA::main(__argc, __argv);
-	}
+		int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmdshow) {
+			return SPA::main(__argc, __argv);
+		}
 
 	#else
 
-	int main(int argc, char** argv) {
-		return SPA::main(argc, argv);
-	}
+		int main(int argc, char** argv) {
+			return SPA::main(argc, argv);
+		}
 
 	#endif // SPA_DIST
 

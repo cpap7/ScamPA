@@ -23,6 +23,8 @@ project "ScamPA-Core"
         "%{IncludeDir.stb_image}",
         "%{IncludeDir.spdlog}",
 		"%{IncludeDir.miniaudio}",
+		"%{IncludeDir.yaml_cpp}",
+		"%{IncludeDir.json}",
 
         -- VoxBoxSDK
         "%{IncludeDir.VoxBoxCommon}",
@@ -35,6 +37,7 @@ project "ScamPA-Core"
    {
         "ImGui",
         "GLFW",
+		"yaml-cpp",
 
         "%{Library.Vulkan}",
 
@@ -47,6 +50,10 @@ project "ScamPA-Core"
    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
    objdir ("../bin-int/" .. outputdir .. "/%{prj.name}")
 
+
+   filter "files:Vendor/yaml-cpp/src/**.cpp"
+	  flags { "NoPCH" }
+   
    filter "system:windows"
       systemversion "latest"
       toolset "v145" -- VS 2026

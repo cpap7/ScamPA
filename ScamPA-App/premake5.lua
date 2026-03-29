@@ -18,6 +18,8 @@ project "ScamPA-App"
       "%{IncludeDir.stb_image}",
 	  "%{IncludeDir.spdlog}",
       "%{IncludeDir.miniaudio}",
+	  "%{IncludeDir.yaml_cpp}",
+	  "%{IncludeDir.json}",
 
       -- VoxBoxSDK
       "%{IncludeDir.VoxBoxCommon}",
@@ -28,7 +30,8 @@ project "ScamPA-App"
 
    links
    {
-       "ScamPA-Core"
+       "ScamPA-Core",
+	   "yaml-cpp"
    }
 
    targetdir ("../bin/" .. outputdir .. "/%{prj.name}")

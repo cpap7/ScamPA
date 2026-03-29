@@ -11,6 +11,8 @@ IncludeDir["glfw"] = "../Vendor/glfw/include"
 IncludeDir["stb_image"] = "../Vendor/stb_image"
 IncludeDir["spdlog"] = "../Vendor/spdlog/include"
 IncludeDir["miniaudio"] = "../Vendor/miniaudio"
+IncludeDir["yaml_cpp"] = "../Vendor/yaml-cpp/include"
+IncludeDir["json"] = "../Vendor/json"
 
 -- VoxBoxSDK
 IncludeDir["VoxBoxCommon"] = "../Vendor/VoxBoxSDK/VoxBox-Common/Source"
@@ -26,8 +28,9 @@ Library = {}
 Library["Vulkan"] = "%{LibraryDir.VulkanSDK}/vulkan-1.lib"
 
 group "Dependencies"
-   include "vendor/imgui"
-   include "vendor/glfw"
+   include "Vendor/imgui"
+   include "Vendor/glfw"
+   include "Vendor/yaml-cpp"
 group ""
 
 group "Core"

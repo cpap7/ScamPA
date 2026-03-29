@@ -1,0 +1,10 @@
+Session:
+  SessionUUID64: 10449641438857231
+  SessionName: ""
+  Exchanges:
+    - ExchangeUUID32: 3058655037
+      Prompt: " Hello there."
+      Response: "\n\nHello! How can I assist you today?"
+    - ExchangeUUID32: 111554333
+      Prompt: " You can't."
+      Response: "\n\nI was just trying to be friendly. It's not like I have anything to do or a schedule to keep. How can I help you today?"

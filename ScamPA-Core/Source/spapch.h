@@ -27,4 +27,5 @@
 #include <ScamPA/Core/PlatformDetection.h>
 #include <ScamPA/Core/Logger.h>
 #include <ScamPA/Core/Assert.h>
+#include <ScamPA/Debug/Instrumentor.h>
 //#include <ScamPA/Core/Events/Event.h>

@@ -8,6 +8,10 @@ namespace SPA {
 	}
 
 	void CRenderer::BeginFrame() {
+		if (m_swapchain.NeedsRebuild()) {
+			return;
+		}
+
 		m_swapchain.BeginFrame();
 	}
 
@@ -15,6 +19,7 @@ namespace SPA {
 		if (m_swapchain.NeedsRebuild()) {
 			return;
 		}
+		
 		ImDrawData* draw_data = ImGui::GetDrawData();
 		
 		const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);

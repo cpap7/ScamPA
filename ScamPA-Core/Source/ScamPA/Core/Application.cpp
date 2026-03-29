@@ -37,9 +37,20 @@ namespace SPA {
 		while (!m_window_handle->ShouldClose() && m_is_running) {
 			// Update window
 			m_window_handle->OnUpdate(); // Poll events (i.e., resize, input, etc.)
+			
+			//if (m_is_minimized) {
+			//	continue;
+			//}
 
-			if (m_is_minimized) {
-				continue; // Skip frames when minimized
+			// Handle resize events (if needed)
+			if (m_swapchain->NeedsRebuild()) {
+				int width, height;
+				m_window_handle->GetFramebufferSize(&width, &height);
+
+				if (width > 0 && height > 0) {
+					SPA_CORE_INFO("(Application) Rebuilding swapchain ({0} x {1})", width, height);
+					m_swapchain->Resize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+				}
 			}
 
 			// Update layer logic (per frame)
@@ -47,18 +58,16 @@ namespace SPA {
 				layer->OnUpdate(m_timestep);
 			}
 
-			// Handle resize events (if needed)
-			if (m_swapchain->NeedsRebuild()) {
-				int width, height;
-				m_window_handle->GetFramebufferSize(&width, &height);
-				
-				if (width > 0 && height > 0) {
-					SPA_CORE_INFO("(Application) Rebuilding swapchain ({0} x {1})", width, height);
-					m_swapchain->Resize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
-				}
-			}
 			RenderImGui();
-			RenderVulkan();
+			// Check imgui window sizes
+			ImDrawData* draw_data = ImGui::GetDrawData();
+			const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
+			if (!is_minimized) {
+				RenderVulkan();
+			}
+			else {
+				std::this_thread::sleep_for(std::chrono::milliseconds(5));
+			}
 			
 			// Update frame time
 			float time = GetTime();
@@ -131,7 +140,6 @@ namespace SPA {
 		}
 
 		m_imgui_layer->EndFrame(); 				// End ImGui frame to prepare ImGui draw data
-
 	}
 
 	void CApplication::RenderVulkan() {
@@ -246,6 +254,7 @@ namespace SPA {
 	}
 	
 	bool CApplication::OnWindowResize(CWindowResizedEvent& a_event) {
+		// NOTE: This is specific to glfw; not the same as resizing via imgui
 		int width = a_event.GetWidth();
 		int height = a_event.GetHeight();
 

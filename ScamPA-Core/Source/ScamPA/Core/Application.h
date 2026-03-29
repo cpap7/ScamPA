@@ -75,7 +75,7 @@ namespace SPA {
 
 		// Flags
 		bool m_is_running = false;
-		bool m_is_minimized = false;
+		bool m_is_minimized = false; // For glfw event callback
 
 	public:
 		CApplication(const SApplicationSpecification& a_application_specification = SApplicationSpecification());

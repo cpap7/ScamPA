@@ -1,8 +1,8 @@
 #pragma once
 #include "AIEngineManager.h"
 
-#include <ScamPA/Audio/AudioDevice.h>
-#include <ScamPA/Utilities/Timer.h>
+#include "../Audio/AudioDevice.h"
+#include "../Utilities/Timer.h"
 
 #include <thread>
 #include <atomic>

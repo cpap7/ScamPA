@@ -1,5 +1,5 @@
 #pragma once
-#include "../AIAgent/AIEngineManager.h"
+#include "AIEngineManager.h"
 #include "ChatComponents.h"
 
 #include <string>

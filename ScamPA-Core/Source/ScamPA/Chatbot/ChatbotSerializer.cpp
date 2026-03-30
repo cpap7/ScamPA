@@ -1,3 +1,4 @@
+#include "spapch.h"
 #include "ChatbotSerializer.h"
 
 #include <fstream>

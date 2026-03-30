@@ -1,7 +1,9 @@
+#include "spapch.h"
 #include "ChatbotStateMachine.h"
-#include <ScamPA/Core/Logger.h>
-#include <ScamPA/Audio/AudioInputDevice.h>
-#include <ScamPA/Audio/AudioOutputDevice.h>
+
+#include "../Core/Logger.h"
+#include "../Audio/AudioInputDevice.h"
+#include "../Audio/AudioOutputDevice.h"
 
 namespace SPA {
 	
@@ -78,8 +80,10 @@ namespace SPA {
 				return;
 			}
 
-			// ~300 ms window @ 16 kHz
-			float rms_energy = input_device->GetRecentRMSEnergy(4800);
+			// samples = sample rate * time window
+			// 4800 = 16000 hz * 0.3s (would be ~300 ms window @ 16 kHz)
+			// 3200 for 200 ms, 1600 for 100 ms etc
+			float rms_energy = input_device->GetRecentRMSEnergy(1600);
 			if (rms_energy > m_silence_threshold) {
 				m_speech_detected = true;
 				m_silence_timer.Reset();

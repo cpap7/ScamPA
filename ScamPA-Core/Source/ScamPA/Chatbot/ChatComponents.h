@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ScamPA/Utilities/UUID.h>
+#include "../Utilities/UUID.h"
 
 #include <vector>
 #include <string>

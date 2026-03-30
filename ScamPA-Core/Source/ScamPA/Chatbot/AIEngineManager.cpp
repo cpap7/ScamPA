@@ -1,5 +1,6 @@
+#include "spapch.h"
 #include "AIEngineManager.h"
-#include <ScamPA/Core/Logger.h>
+#include "../Core/Logger.h"
 
 namespace SPA {
 	CAIEngineManager::CAIEngineManager(const SModelPaths& a_paths)

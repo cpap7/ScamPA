@@ -6,7 +6,9 @@ project "ScamPA-Core"
    staticruntime "off"
    pchheader "spapch.h"
    pchsource "Source/spapch.cpp"
-   
+   targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+   objdir ("../bin-int/" .. outputdir .. "/%{prj.name}")
+
    files 
    { 
         "Source/**.h", 
@@ -47,8 +49,27 @@ project "ScamPA-Core"
         "VoxBox-LlamaAPI",
    }
 
-   targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-   objdir ("../bin-int/" .. outputdir .. "/%{prj.name}")
+   local whisper_bin = "../Vendor/VoxBoxSDK/VoxBox-WhisperAPI/bin/%{cfg.buildcfg}-%{cfg.architecture}"
+   local piper_bin   = "../Vendor/VoxBoxSDK/VoxBox-PiperAPI/bin/%{cfg.buildcfg}-%{cfg.architecture}"
+   local llama_bin   = "../Vendor/VoxBoxSDK/VoxBox-LlamaAPI/bin/%{cfg.buildcfg}-%{cfg.architecture}"
+
+   postbuildcommands
+   {
+      -- VoxBox-WhisperAPI
+      '{COPYFILE} "' .. whisper_bin .. '/VoxBox-WhisperAPI.dll" "bin/%{cfg.targetdir}"',
+
+      -- VoxBox-PiperAPI + dependencies
+      '{COPYFILE} "' .. piper_bin .. '/VoxBox-PiperAPI.dll" "bin/%{cfg.targetdir}"',
+      '{COPYFILE} "' .. piper_bin .. '/onnxruntime.dll" "bin/%{cfg.targetdir}"',
+      '{COPYFILE} "' .. piper_bin .. '/espeak-ng.dll" "bin/%{cfg.targetdir}"',
+      '{COPYFILE} "' .. piper_bin .. '/piper_phonemize.dll" "%bin/{cfg.targetdir}"',
+      '{COPYDIR} "'  .. piper_bin .. '/espeak" "bin/%{cfg.targetdir}"',
+
+      -- VoxBox-LlamaAPI
+      '{COPYFILE} "' .. llama_bin .. '/VoxBox-LlamaAPI.dll" "bin/%{cfg.targetdir}"',
+   }
+
+   
 
 
    filter "files:Vendor/yaml-cpp/src/**.cpp"

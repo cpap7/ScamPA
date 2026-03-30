@@ -12,3 +12,4 @@ bin-int/
 # Exclude
 !vendor/bin
 /Scripts/__pycache__
+/ScamPA-App/obj/Release

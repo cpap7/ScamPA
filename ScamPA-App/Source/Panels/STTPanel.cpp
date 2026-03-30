@@ -1,7 +1,7 @@
 #include "STTPanel.h"
 #include <ScamPA/Core/Logger.h>
-#include <ScamPA/Audio/AudioInputDevice.h>
 #include <ScamPA/Core/Application.h>
+#include <ScamPA/Audio/AudioInputDevice.h>
 
 #include <imgui.h>
 

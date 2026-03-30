@@ -1,5 +1,5 @@
 #include "ChatbotPanel.h"
-#include "../Serialization/ChatbotSerializer.h"
+#include <ScamPA/Chatbot/ChatbotSerializer.h>
 #include <ScamPA/Core/Application.h>
 
 #include <imgui.h>
@@ -90,7 +90,7 @@ namespace SPA {
 			return;
 		}
 
-		m_state_machine.OnUpdate();
+		m_state_machine.OnUpdate(); // Poll for automatic transitions
 
 		// Status
 		std::string status_label	= Utilities::UpdateStatusLabel(state);
@@ -101,7 +101,7 @@ namespace SPA {
 		ImGui::TextDisabled("Session UUID: %llx", m_active_session.m_uuid);
 		ImGui::Separator();
 
-		// Controls
+		// Manual Controls
 		if (state == EChatbotState::Idle || state == EChatbotState::Error) {
 			if (ImGui::Button("Start")) {
 				m_state_machine.OnEvent(EChatbotEvent::Record);

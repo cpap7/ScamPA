@@ -1,8 +1,8 @@
 #include "TTSPanel.h"
 
 #include <ScamPA/Core/Logger.h>
-#include <ScamPA/Audio/AudioOutputDevice.h>
 #include <ScamPA/Core/Application.h>
+#include <ScamPA/Audio/AudioOutputDevice.h>
 
 #include <imgui.h>
 

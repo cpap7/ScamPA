@@ -1,8 +1,7 @@
 #pragma once
 #include <ScamPA/Core/Panel.h>
 #include <ScamPA/Audio/DeviceSettings.h>
-
-#include "../AIAgent/AIEngineManager.h"
+#include <ScamPA/Chatbot/AIEngineManager.h>
 
 #include <string>
 #include <memory>

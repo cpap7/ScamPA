@@ -1,9 +1,7 @@
 #pragma once
 #include <ScamPA/Core/Layer.h>
-
-// TODO: Move these to ScamPA
-#include "AIAgent/AIEngineManager.h"
-#include "AIAgent/ChatbotStateMachine.h"
+#include <ScamPA/Chatbot/AIEngineManager.h>
+#include <ScamPA/Chatbot/ChatbotStateMachine.h>
 
 // Panels
 #include "Panels/STTPanel.h"

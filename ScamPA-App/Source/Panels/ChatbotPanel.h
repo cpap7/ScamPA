@@ -1,8 +1,7 @@
 #pragma once
 #include <ScamPA/Core/Panel.h>
-
-#include "../AIAgent/ChatbotStateMachine.h"
-#include "../Serialization/ChatComponents.h"
+#include <ScamPA/Chatbot/ChatbotStateMachine.h>
+#include <ScamPA/Chatbot/ChatComponents.h>
 
 #include <string>
 #include <vector>

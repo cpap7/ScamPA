@@ -1,8 +1,8 @@
 #include "LLMPanel.h"
 #include <ScamPA/Core/Application.h>
+#include <ScamPA/Chatbot/ChatbotSerializer.h>
 
 #include <imgui.h>
-#include "../Serialization/ChatbotSerializer.h"
 
 namespace SPA {
 	CLLMPanel::CLLMPanel(CAIEngineManager& a_manager)

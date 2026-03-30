@@ -278,14 +278,8 @@ namespace SPA {
 
 	void CImGuiLayer::RenderCustomTitlebar(float& a_out_titlebar_height) {
 		CApplication& app = CApplication::GetApplicationInstance();
-		
-		std::string version = app.GetApplicationVersion();
-		std::string configuration = app.GetConfigurationName();
-		std::string platform = app.GetPlatformName();
-		std::string window_title = "ScamPA App (" + version + ") - " + configuration + " (" + platform + ")";
-		
 		SApplicationSpecification app_spec = app.GetSpecification();
-		app_spec.m_name = window_title;
+		app_spec.m_name = app.GetApplicationVersion();
 
 		CWindow& window = app.GetApplicationInstance().GetWindowHandle();
 

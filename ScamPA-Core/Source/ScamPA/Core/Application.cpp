@@ -1,6 +1,6 @@
 #include "spapch.h"
 #include "Application.h"
-#include "PlatformInfo.h"
+#include "Version.h"
 //#include "ScamPA/ImGui/ImGuiLayer.h"
 
 #include <GLFW/glfw3.h>
@@ -99,31 +99,15 @@ namespace SPA {
 	}
 
 	const char* CApplication::GetConfigurationName() {
-		switch (CPlatformInfo::GetBuildConfiguration()) {
-			case EBuildConfigurationType::None:			break;
-			case EBuildConfigurationType::Debug:		return "Debug Build";
-			case EBuildConfigurationType::Release:		return "Release Build";
-			case EBuildConfigurationType::Distribution: return "Distribution Build";
-		}
-
-		SPA_CORE_WARN("(Application) Unknown build configuration!");
-		return "Unknown Build Configuration";
+		return SPA_BUILD_CONFIG_NAME;
 	}
 	
 	const char* CApplication::GetPlatformName() {
-		switch (CPlatformInfo::GetOSPlatform()) {
-			case EOperatingSystemType::None:			break;
-			case EOperatingSystemType::Windows:			return "Windows x64";
-			case EOperatingSystemType::MacOS:			return "MacOS";
-			case EOperatingSystemType::Linux:			return "Linux";
-		}
-
-		SPA_CORE_WARN("(Application) Unknown OS platform!");
-		return "Unknown OS Platform";
+		return SPA_BUILD_PLATFORM_NAME;
 	}
 
 	const char* CApplication::GetApplicationVersion() {
-		return SPA_BUILD_VERSION;
+		return SPA_VERSION_LONG;
 	}
 
 	void CApplication::SetMenubarCallback(const std::function<void()>& a_menubar_callback) {

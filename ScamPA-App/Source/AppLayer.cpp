@@ -12,11 +12,7 @@ namespace SPA {
 	}
 
 	void CAppLayer::OnAttach() {
-		std::string version			= CApplication::GetApplicationInstance().GetApplicationVersion();
-		std::string configuration	= CApplication::GetApplicationInstance().GetConfigurationName();
-		std::string platform		= CApplication::GetApplicationInstance().GetPlatformName();
-		std::string window_title	= "ScamPA App (" + version + ") - " + configuration + " (" + platform + ")";
-		CApplication::GetApplicationInstance().GetWindowHandle().SetTitle(window_title);
+		CApplication::GetApplicationInstance().GetWindowHandle().SetTitle(SPA_VERSION_LONG);
 
 		// Configure paths
 		SModelPaths paths;

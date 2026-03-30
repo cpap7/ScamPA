@@ -38,6 +38,12 @@
 #include <ScamPA/Audio/AudioOutputDevice.h>
 #include <ScamPA/Audio/AudioDevice.h>
 
+// Chatbot
+#include <ScamPA/Chatbot/AIEngineManager.h>
+#include <ScamPA/Chatbot/ChatbotSerializer.h>
+#include <ScamPA/Chatbot/ChatbotStateMachine.h>
+#include <ScamPA/Chatbot/ChatComponents.h>
+
 // ImGui
 #include <imgui.h>
 

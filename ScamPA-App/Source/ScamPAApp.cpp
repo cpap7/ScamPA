@@ -6,6 +6,8 @@
 
 namespace SPA {
 	SPA::CApplication* SPA::CreateApplication(int argc, char** argv) {
+		SPA_PROFILE_FUNCTION();
+
 		SPA::SApplicationSpecification spec;
 		spec.m_name = "ScamPA App";
 		spec.m_width = 1280;

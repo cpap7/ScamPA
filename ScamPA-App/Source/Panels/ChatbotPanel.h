@@ -13,11 +13,13 @@ namespace SPA {
 		SChatSession m_active_session;
 
 		// Copies of pollable results which are updated each frame
+		// TODO: package into a struct
 		std::string m_stt_transcript;
 		std::string m_llm_response;
 		std::string m_error;
-
+		
 		CChatbotStateMachine& m_state_machine;
+		float m_stt_confidence = 0.0f; // Pollable result (TODO: package into a struct)
 
 		bool m_results_committed = true; // For tracking transcript & response commits to the panel
 	

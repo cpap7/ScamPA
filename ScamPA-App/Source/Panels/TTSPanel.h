@@ -17,7 +17,7 @@ namespace SPA {
 		std::unique_ptr<IAudioDevice> m_audio_output_device;
 		
 		float m_verbal_delay	= 1.0f;
-		float m_noise_scale		= 1.0f;
+		float m_noise_scale		= 0.667f;
 
 	public:
 		explicit CTTSPanel(CAIEngineManager& a_manager);

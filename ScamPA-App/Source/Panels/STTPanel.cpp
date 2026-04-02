@@ -30,6 +30,8 @@ namespace SPA {
 	}
 
 	void CSTTPanel::OnInit() {
+		SPA_PROFILE_FUNCTION();
+
 		SAudioDeviceConfig config;
 		config.m_sample_rate	= 16000; // whisper.cpp default
 		config.m_channels		= 1;
@@ -42,10 +44,14 @@ namespace SPA {
 	}
 
 	void CSTTPanel::OnShutdown() {
+		SPA_PROFILE_FUNCTION();
+
 		m_audio_input_device.reset();
 	}
 
 	void CSTTPanel::OnUIRender() {
+		SPA_PROFILE_FUNCTION();
+
 		ImGui::Begin("Speech-To-Text Settings");
 
 		auto* stt_engine = m_manager.GetSTTEngine();
@@ -230,6 +236,8 @@ namespace SPA {
 	}
 
 	void CSTTPanel::RefreshDeviceList() {
+		SPA_PROFILE_FUNCTION();
+
 		if (m_audio_input_device) {
 			m_device_settings.m_device_list = m_audio_input_device->GetDeviceList();
 			m_device_settings.m_selected_device_index = -1; // Reset to system default on refresh
@@ -245,6 +253,8 @@ namespace SPA {
 	}
 
 	void CSTTPanel::Reinit() {
+		SPA_PROFILE_FUNCTION();
+
 		OnShutdown();
 		OnInit();
 	}

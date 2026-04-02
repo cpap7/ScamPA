@@ -17,6 +17,8 @@ namespace SPA {
 	}
 
 	void CTTSPanel::OnInit() {
+		SPA_PROFILE_FUNCTION();
+
 		SAudioDeviceConfig config;
 		config.m_sample_rate = 22050; // piper default
 		config.m_channels = 1;
@@ -29,10 +31,14 @@ namespace SPA {
 	}
 
 	void CTTSPanel::OnShutdown() {
+		SPA_PROFILE_FUNCTION();
+
 		m_audio_output_device.reset();
 	}
 
 	void CTTSPanel::OnUIRender() {
+		SPA_PROFILE_FUNCTION();
+
 		ImGui::Begin("Text-To-Speech Settings");
 		auto* tts_engine = m_manager.GetTTSEngine();
 		if (!tts_engine) {
@@ -105,7 +111,7 @@ namespace SPA {
 		if (ImGui::SliderFloat("Verbal Delay", &m_verbal_delay, 0.5f, 2.0f, "%.2f")) {
 			tts_engine->SetSpeed(m_verbal_delay);
 		}
-		if (ImGui::SliderFloat("Noise Scale", &m_noise_scale, 0.5f, 2.0f, "%.2f")) {
+		if (ImGui::SliderFloat("Noise Scale", &m_noise_scale, 0.0f, 1.0f, "%.2f")) {
 			tts_engine->SetNoiseScale(m_noise_scale);
 		}
 
@@ -169,9 +175,11 @@ namespace SPA {
 	}
 
 	void CTTSPanel::RefreshDeviceList() {
+		SPA_PROFILE_FUNCTION();
+
 		if (m_audio_output_device) {
 			m_device_settings.m_device_list = m_audio_output_device->GetDeviceList();
-			m_device_settings.m_selected_device_index = -1; // Reset to system default on refresh
+			//m_device_settings.m_selected_device_index = -1; // Reset to system default on refresh
 
 			// Auto select current default
 			for (int32_t i{}; i < static_cast<int32_t>(m_device_settings.m_device_list.size()); ++i) {

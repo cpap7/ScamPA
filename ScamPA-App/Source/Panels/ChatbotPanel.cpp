@@ -53,6 +53,8 @@ namespace SPA {
 	}
 	
 	void CChatbotPanel::OnUIRender() {
+		SPA_PROFILE_FUNCTION();
+
 		ImGui::Begin("Chatbot FSM");
 		
 		EChatbotState state		= m_state_machine.GetState();
@@ -126,7 +128,7 @@ namespace SPA {
 		ImGui::Text("Current Dialogue");
 		if (state == EChatbotState::Inferring || state == EChatbotState::Speaking) {
 			if (!m_stt_transcript.empty()) {
-				ImGui::TextWrapped("Prompt: %s", m_stt_transcript.c_str());
+				ImGui::TextWrapped("Prompt: %s (confidence = %.2f)", m_stt_transcript.c_str(), m_stt_confidence);
 			}
 			if (!m_llm_response.empty()) {
 				ImGui::TextWrapped("Agent: %s", m_llm_response.c_str());
@@ -144,7 +146,7 @@ namespace SPA {
 		ImGui::Text("Chat History");
 		ImGui::Separator();
 		for (const auto& exchange : m_active_session.m_exchanges) {
-			ImGui::TextWrapped("Prompt: %s", exchange.m_prompt.c_str());			
+			ImGui::TextWrapped("Prompt: %s (confidence = %.2f)", exchange.m_prompt.c_str(), exchange.m_stt_confidence);			
 			ImGui::TextWrapped("Agent: %s", exchange.m_response.c_str());
 			ImGui::Separator();
 		}
@@ -179,31 +181,39 @@ namespace SPA {
 	}
 
 	void CChatbotPanel::UpdateChatLog() {
+		SPA_PROFILE_FUNCTION();
+
 		// Refresh cached results during STT transcription & LLM response after inference
 		std::string last_transcript = m_state_machine.GetLastSTTTranscript();
-		std::string last_response = m_state_machine.GetLastLLMResponse();
-		std::string last_error = m_state_machine.GetLastError();
+		std::string last_response	= m_state_machine.GetLastLLMResponse();
+		std::string last_error		= m_state_machine.GetLastError();
+		float last_confidence		= m_state_machine.GetLastSTTConfidence();
 
 		if (!last_transcript.empty())	{ m_stt_transcript = std::move(last_transcript);	}
 		if (!last_response.empty())		{ m_llm_response = std::move(last_response);		}
 		if (!last_error.empty())		{ m_error = std::move(last_error);					}
+		if (last_confidence > 0.0f)		{ m_stt_confidence = last_confidence;				}
 	}
 
 	void CChatbotPanel::CommitChatLog() {
+		SPA_PROFILE_FUNCTION();
+
 		// Check if the full cycle is completed (Speaking -> Listening)
 		EChatbotState state = m_state_machine.GetState();
 		if (state == EChatbotState::Listening) {
 			if (!m_stt_transcript.empty() && !m_llm_response.empty()) { // Commit to history
-				//m_chat_log.emplace_back(std::move(m_stt_transcript), std::move(m_llm_response));
-				m_active_session.AddExchange(m_stt_transcript, m_llm_response);
+				m_active_session.AddExchange(m_stt_transcript, m_llm_response, m_stt_confidence);
 			}
 			m_stt_transcript.clear();
 			m_llm_response.clear();
 			m_error.clear();
+			m_stt_confidence = 0.0f;
 		}
 	}
 
 	void CChatbotPanel::SaveToYAML() {
+		SPA_PROFILE_FUNCTION();
+
 		std::string file_path = CApplication::GetApplicationInstance().SaveFile("YAML File (*.yaml)\0*.yaml\0", "yaml");
 		
 		if (!file_path.empty()) {
@@ -213,6 +223,8 @@ namespace SPA {
 	}
 	
 	void CChatbotPanel::SaveToJSON() {
+		SPA_PROFILE_FUNCTION();
+
 		std::string file_path = CApplication::GetApplicationInstance().SaveFile("JSON File (*.json)\0*.json\0", "json");
 		
 		if (!file_path.empty()) {
@@ -222,6 +234,8 @@ namespace SPA {
 	}
 
 	void CChatbotPanel::LoadFromYAML() {
+		SPA_PROFILE_FUNCTION();
+
 		std::string file_path = CApplication::GetApplicationInstance().OpenFile("YAML File (*.yaml)\0*.yaml\0");
 		
 		if (!file_path.empty()) {
@@ -231,6 +245,8 @@ namespace SPA {
 	}
 
 	void CChatbotPanel::LoadFromJSON() {
+		SPA_PROFILE_FUNCTION();
+
 		std::string file_path = CApplication::GetApplicationInstance().OpenFile("JSON File (*.json)\0*.json\0");
 		
 		if (!file_path.empty()) {

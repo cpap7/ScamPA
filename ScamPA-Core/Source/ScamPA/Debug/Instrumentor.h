@@ -55,11 +55,12 @@ namespace SPA {
                 // If there's already a session, it must be closed before beginning a new one
                 // Profiling output for the original session will be in the new opened session instead
                 // which is better than having a poorly formatted profiling output
+                if (CLogger::GetCoreLogger()) { // Handle edge case: BeginSession() before CLogger::Init()
+                    SPA_CORE_ERROR("CInstrumentor::BeginSession({0}) called when session '{1}' was already open!", new_name, m_current_session->m_name);
+                }
+                InternalEndSession();
             }
-            if (CLogger::GetCoreLogger()) { // Handle edge case: BeginSession() before CLogger::Init()
-                SPA_CORE_ERROR("CInstrumentor::BeginSession({0}) called when session '{1}' was already open!", new_name, m_current_session->m_name);
-            }
-
+            
             m_output_stream.open(new_file_path);
 
             if (m_output_stream.is_open()) {
@@ -128,10 +129,12 @@ namespace SPA {
 
         // Note: must already own lock on m_mutex before calling this function
         void InternalEndSession() {
-            WriteFooter();
-            m_output_stream.close();
-            delete m_current_session;
-            //m_current_session = nullptr;
+            if (m_current_session) {
+                WriteFooter();
+                m_output_stream.close();
+                delete m_current_session;
+                m_current_session = nullptr;
+            }
         }
     };
 
@@ -143,7 +146,7 @@ namespace SPA {
         bool m_stopped;
 
     public:
-        CInstrumentationTimer(const char* new_name) : m_name(new_name), m_stopped(false) {
+        CInstrumentationTimer(const char* a_name) : m_name(a_name), m_stopped(false) {
             m_start_timepoint = std::chrono::steady_clock::now();
         }
 
@@ -214,12 +217,12 @@ namespace Utilities {
 #else
     #define SPA_FUNC_SIG "SPA_FUNC_SIG unknown!"
 #endif
-#define SPA_PROFILE_BEGIN_SESSION(new_name, new_filepath) ::SPA::CInstrumentor::Get().BeginSession(new_name, new_filepath)
+#define SPA_PROFILE_BEGIN_SESSION(a_name, a_filepath) ::SPA::CInstrumentor::Get().BeginSession(a_name, a_filepath)
 #define SPA_PROFILE_END_SESSION() ::SPA::CInstrumentor::Get().EndSession()
-#define SPA_PROFILE_SCOPE_LINE2(new_name, new_line) constexpr auto fixed_name##line = ::SPA::Utilities::CleanupOutputString(name, "__cdecl ");\
-                                            											 ::SPA::CInstrumentationTimer timer##line(fixed_name##line.m_data)
-#define SPA_PROFILE_SCOPE_LINE(new_name, new_line) SPA_PROFILE_SCOPE_LINE2(new_name, new_line)
-#define SPA_PROFILE_SCOPE(new_name) SPA_PROFILE_SCOPE_LINE(new_name, __LINE__)
+#define SPA_PROFILE_SCOPE_LINE2(a_name, a_line) constexpr auto fixed_name##a_line = ::Utilities::CleanupOutputString(a_name, "__cdecl ");\
+                                            											 ::SPA::CInstrumentationTimer timer##a_line(fixed_name##a_line.m_data)
+#define SPA_PROFILE_SCOPE_LINE(a_name, a_line) SPA_PROFILE_SCOPE_LINE2(a_name, a_line)
+#define SPA_PROFILE_SCOPE(a_name) SPA_PROFILE_SCOPE_LINE(a_name, __LINE__)
 #define SPA_PROFILE_FUNCTION() SPA_PROFILE_SCOPE(SPA_FUNC_SIG)
 
 #else

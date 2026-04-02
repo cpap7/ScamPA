@@ -52,25 +52,23 @@ project "ScamPA-Core"
    local whisper_bin = "../Vendor/VoxBoxSDK/VoxBox-WhisperAPI/bin/%{cfg.buildcfg}-%{cfg.architecture}"
    local piper_bin   = "../Vendor/VoxBoxSDK/VoxBox-PiperAPI/bin/%{cfg.buildcfg}-%{cfg.architecture}"
    local llama_bin   = "../Vendor/VoxBoxSDK/VoxBox-LlamaAPI/bin/%{cfg.buildcfg}-%{cfg.architecture}"
+   local app_outdir  = "../bin/" .. outputdir .. "/ScamPA-App"
 
    postbuildcommands
    {
       -- VoxBox-WhisperAPI
-      '{COPYFILE} "' .. whisper_bin .. '/VoxBox-WhisperAPI.dll" "bin/%{cfg.targetdir}"',
+      '{COPYFILE} "' .. whisper_bin .. '/VoxBox-WhisperAPI.dll" "' .. app_outdir .. '"',
 
       -- VoxBox-PiperAPI + dependencies
-      '{COPYFILE} "' .. piper_bin .. '/VoxBox-PiperAPI.dll" "bin/%{cfg.targetdir}"',
-      '{COPYFILE} "' .. piper_bin .. '/onnxruntime.dll" "bin/%{cfg.targetdir}"',
-      '{COPYFILE} "' .. piper_bin .. '/espeak-ng.dll" "bin/%{cfg.targetdir}"',
-      '{COPYFILE} "' .. piper_bin .. '/piper_phonemize.dll" "%bin/{cfg.targetdir}"',
-      '{COPYDIR} "'  .. piper_bin .. '/espeak" "bin/%{cfg.targetdir}"',
+      '{COPYFILE} "' .. piper_bin .. '/VoxBox-PiperAPI.dll" "' .. app_outdir .. '"',
+      '{COPYFILE} "' .. piper_bin .. '/onnxruntime.dll" "' .. app_outdir .. '"',
+      '{COPYFILE} "' .. piper_bin .. '/espeak-ng.dll" "' .. app_outdir .. '"',
+      '{COPYFILE} "' .. piper_bin .. '/piper_phonemize.dll" "' .. app_outdir .. '"',
+      '{COPYDIR} "'  .. piper_bin .. '/espeak" "' .. app_outdir .. '"',
 
       -- VoxBox-LlamaAPI
-      '{COPYFILE} "' .. llama_bin .. '/VoxBox-LlamaAPI.dll" "bin/%{cfg.targetdir}"',
+      '{COPYFILE} "' .. llama_bin .. '/VoxBox-LlamaAPI.dll" "' .. app_outdir .. '"',
    }
-
-   
-
 
    filter "files:Vendor/yaml-cpp/src/**.cpp"
 	  flags { "NoPCH" }

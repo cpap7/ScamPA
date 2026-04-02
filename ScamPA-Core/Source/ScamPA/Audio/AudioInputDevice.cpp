@@ -30,6 +30,8 @@ namespace SPA {
 	}
 
 	void CAudioInputDevice::Init(const SAudioDeviceConfig& a_config) {
+		SPA_PROFILE_FUNCTION();
+
 		if (m_device) {
 			SPA_CORE_WARN("(Audio Input Device) Device already initialized!");
 			return;
@@ -55,13 +57,12 @@ namespace SPA {
 		ma_device_cfg.dataCallback		= Utilities::CaptureDataCallback;
 		ma_device_cfg.pUserData			= this;
 
-		// Resolve device index to a ma_device_id if user specified device is selected
-		ma_context ma_ctx;
-		bool ctx_initialized = false;
+		// Resolve device index to a ma_device_id using temp context
+		ma_device_id selected_device_id;
+		bool has_device_id = false;
 		if (m_config.m_device_index >= 0) {
+			ma_context ma_ctx;
 			if (ma_context_init(nullptr, 0, nullptr, &ma_ctx) == MA_SUCCESS) {
-				ctx_initialized = true;
-
 				ma_device_info* device_infos = nullptr;
 				uint32_t device_count = 0;
 				ma_result enum_result;
@@ -74,12 +75,8 @@ namespace SPA {
 				}
 				
 				if (enum_result == MA_SUCCESS && m_config.m_device_index < device_count) {
-					if (m_config.m_device_type == EAudioDeviceType::Loopback) {
-						ma_device_cfg.playback.pDeviceID = &device_infos[m_config.m_device_index].id;
-					}
-					else {
-						ma_device_cfg.capture.pDeviceID = &device_infos[m_config.m_device_index].id;
-					}
+					selected_device_id = device_infos[m_config.m_device_index].id;
+					has_device_id = true;
 					SPA_CORE_INFO("(Audio Input Device) Using device: {0}", device_infos[m_config.m_device_index].name);
 				}
 				else {
@@ -92,11 +89,16 @@ namespace SPA {
 			
 		}
 
-		ma_result result = ma_device_init(ctx_initialized ? &ma_ctx : nullptr, &ma_device_cfg, m_device);
-		if (ctx_initialized) {
-			ma_context_uninit(&ma_ctx);
+		if (has_device_id) {
+			if (m_config.m_device_type == EAudioDeviceType::Loopback) {
+				ma_device_cfg.playback.pDeviceID = &selected_device_id;
+			}
+			else {
+				ma_device_cfg.capture.pDeviceID = &selected_device_id;
+			}
 		}
 
+		ma_result result = ma_device_init(nullptr, &ma_device_cfg, m_device);
 		if (result != MA_SUCCESS) {
 			SPA_CORE_ERROR("(Audio Input Device) Failed to initialize device! Error Code: {0}", static_cast<int>(result));
 			delete m_device;
@@ -108,6 +110,8 @@ namespace SPA {
 	}
 
 	void CAudioInputDevice::Shutdown() {
+		SPA_PROFILE_FUNCTION();
+
 		Stop();
 
 		if (m_device) {
@@ -121,6 +125,8 @@ namespace SPA {
 	}
 
 	void CAudioInputDevice::Start() {
+		SPA_PROFILE_FUNCTION();
+
 		if (!m_device) {
 			SPA_CORE_ERROR("(Audio Input Device) Cannot start since there is no audio device!");
 			return;
@@ -141,6 +147,8 @@ namespace SPA {
 	}
 
 	void CAudioInputDevice::Stop() {
+		SPA_PROFILE_FUNCTION();
+
 		if (!m_device || !m_is_active) {
 			return;
 		}
@@ -152,10 +160,16 @@ namespace SPA {
 		}
 
 		m_is_active = false;
+		
+		//std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
+		//m_audio_resource.m_buffer.clear();
+
 		SPA_CORE_INFO("(Audio Input Device) Audio capture stopped");
 	}
 
 	std::vector<SAudioDeviceInfo> CAudioInputDevice::GetDeviceList() {
+		SPA_PROFILE_FUNCTION();
+
 		std::vector<SAudioDeviceInfo> device_list{};
 		if (!m_device || m_is_active) {
 			return device_list;
@@ -195,17 +209,23 @@ namespace SPA {
 	}
 
 	void CAudioInputDevice::SetDeviceByIndex(int32_t a_index) {
+		SPA_PROFILE_FUNCTION();
+
 		Shutdown();
 		m_config.m_device_index = a_index;
 		Init(m_config);
 	}
 
 	void CAudioInputDevice::SetCaptureCallback(const AudioCaptureCallbackFn& a_callback) {
+		SPA_PROFILE_FUNCTION();
+
 		std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
 		m_callback = a_callback;
 	}
 
 	std::vector<int16_t> CAudioInputDevice::ConsumeBuffer() {
+		SPA_PROFILE_FUNCTION();
+
 		std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
 		
 		std::vector<int16_t> consumed = std::move(m_audio_resource.m_buffer);
@@ -215,6 +235,8 @@ namespace SPA {
 	}
 
 	float CAudioInputDevice::GetRecentRMSEnergy(size_t a_sample_count) const {
+		SPA_PROFILE_FUNCTION();
+
 		std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
 		
 		if (m_audio_resource.m_buffer.empty()) {
@@ -234,11 +256,15 @@ namespace SPA {
 	}
 
 	size_t CAudioInputDevice::GetBufferedSampleCount() const {
+		SPA_PROFILE_FUNCTION();
+
 		std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
 		return m_audio_resource.m_buffer.size();
 	}
 
 	void CAudioInputDevice::OnDataReceived(const int16_t* a_samples, uint32_t a_sample_count) {
+		SPA_PROFILE_FUNCTION();
+
 		{ // Separate block to prevent potential deadlock
 			std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
 			m_audio_resource.m_buffer.insert(m_audio_resource.m_buffer.end(), a_samples, a_samples + a_sample_count);

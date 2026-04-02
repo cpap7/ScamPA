@@ -12,6 +12,8 @@ namespace SPA {
 	}
 
 	void CChatbotSerializer::SerializeSession(const SChatSession& a_session, const std::string& a_file_path, ESerializationFormat a_format) {
+		SPA_PROFILE_FUNCTION();
+
 		switch (a_format) {
 			case ESerializationFormat::YAML: SerializeSessionYAML(a_session, a_file_path); break;
 			case ESerializationFormat::JSON: SerializeSessionJSON(a_session, a_file_path); break;
@@ -19,6 +21,8 @@ namespace SPA {
 	}
 	
 	SChatSession CChatbotSerializer::DeserializeSession(const std::string& a_file_path, ESerializationFormat a_format) {
+		SPA_PROFILE_FUNCTION();
+
 		switch (a_format) {
 			case ESerializationFormat::YAML: return DeserializeSessionYAML(a_file_path);
 			case ESerializationFormat::JSON: return DeserializeSessionJSON(a_file_path);
@@ -28,6 +32,8 @@ namespace SPA {
 	}
 
 	void CChatbotSerializer::SerializeAIContextSnapshot(const std::string& a_file_path) {
+		SPA_PROFILE_FUNCTION();
+
 		if (!m_manager.IsLLMInitialized()) {
 			return;
 		}
@@ -37,6 +43,8 @@ namespace SPA {
 	}
 
 	void CChatbotSerializer::DeserializeAIContextSnapshot(const std::string& a_file_path) {
+		SPA_PROFILE_FUNCTION();
+
 		if (!m_manager.IsLLMInitialized()) {
 			return;
 		}
@@ -47,6 +55,8 @@ namespace SPA {
 	}
 
 	void CChatbotSerializer::SerializeSessionYAML(const SChatSession& a_session, const std::string& a_file_path) {
+		SPA_PROFILE_FUNCTION();
+
 		YAML::Emitter yaml_output;
 		yaml_output << YAML::BeginMap; // Start
 		yaml_output << YAML::Key << "Session" << YAML::Value << YAML::BeginMap; // Session
@@ -59,6 +69,7 @@ namespace SPA {
 			yaml_output << YAML::Key << "ExchangeUUID32" << YAML::Value << static_cast<uint32_t>(chat_exchange.m_uuid);
 			yaml_output << YAML::Key << "Prompt" << YAML::Value << chat_exchange.m_prompt;
 			yaml_output << YAML::Key << "Response" << YAML::Value << chat_exchange.m_response;
+			yaml_output << YAML::Key << "STTConfidence" << YAML::Value << chat_exchange.m_stt_confidence;
 			yaml_output << YAML::EndMap; // Chat Exchange
 		}
 		yaml_output << YAML::EndSeq; // Exchanges
@@ -70,6 +81,8 @@ namespace SPA {
 	}
 
 	SChatSession CChatbotSerializer::DeserializeSessionYAML(const std::string& a_file_path) {
+		SPA_PROFILE_FUNCTION();
+
 		SChatSession chat_session;
 		YAML::Node root = YAML::LoadFile(a_file_path);
 		if (auto session_node = root["Session"]) {
@@ -80,9 +93,10 @@ namespace SPA {
 				for (const auto& chat_exchange : exchanges_node) {
 					SChatExchange exchange;
 
-					exchange.m_uuid		= CUUID32(chat_exchange["ExchangeUUID32"].as<uint32_t>());
-					exchange.m_prompt	= chat_exchange["Prompt"].as<std::string>();
-					exchange.m_response = chat_exchange["Response"].as<std::string>();
+					exchange.m_uuid				= CUUID32(chat_exchange["ExchangeUUID32"].as<uint32_t>());
+					exchange.m_prompt			= chat_exchange["Prompt"].as<std::string>();
+					exchange.m_response			= chat_exchange["Response"].as<std::string>();
+					exchange.m_stt_confidence	= chat_exchange["STTConfidence"].as<float>();
 
 					chat_session.m_exchanges.push_back(std::move(exchange));
 				}
@@ -93,6 +107,8 @@ namespace SPA {
 	}
 
 	void CChatbotSerializer::SerializeSessionJSON(const SChatSession& a_session, const std::string& a_file_path) {
+		SPA_PROFILE_FUNCTION();
+
 		nlohmann::json json_output;
 		auto& session_node = json_output["Session"];
 		session_node["SessionUUID64"] = static_cast<uint64_t>(a_session.m_uuid);
@@ -105,6 +121,8 @@ namespace SPA {
 			chat_entry["ExchangeUUID32"]	= static_cast<uint32_t>(exchange.m_uuid);
 			chat_entry["Prompt"]			= exchange.m_prompt;
 			chat_entry["Response"]			= exchange.m_response;
+			chat_entry["STTConfidence"]		= exchange.m_stt_confidence;
+
 
 			chat_exchanges.push_back(std::move(chat_entry));
 		}
@@ -115,6 +133,8 @@ namespace SPA {
 	}
 
 	SChatSession CChatbotSerializer::DeserializeSessionJSON(const std::string& a_file_path) {
+		SPA_PROFILE_FUNCTION();
+
 		SChatSession chat_session;
 
 		std::ifstream input_file(a_file_path);
@@ -131,10 +151,10 @@ namespace SPA {
 				for (const auto& chat_entry : session_node["Exchanges"]) {
 					SChatExchange exchange;
 
-					exchange.m_uuid		= CUUID32(chat_entry["ExchangeUUID32"].get<uint32_t>());
-					exchange.m_prompt	= chat_entry["Prompt"].get<std::string>();
-					exchange.m_response	= chat_entry["Response"].get<std::string>();
-
+					exchange.m_uuid				= CUUID32(chat_entry["ExchangeUUID32"].get<uint32_t>());
+					exchange.m_prompt			= chat_entry["Prompt"].get<std::string>();
+					exchange.m_response			= chat_entry["Response"].get<std::string>();
+					exchange.m_stt_confidence	= chat_entry["STTConfidence"].get<float>();
 					chat_session.m_exchanges.push_back(std::move(exchange));
 				}
 			}

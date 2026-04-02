@@ -80,6 +80,8 @@ namespace SPA {
 	}
 
 	void CVulkanImage::AllocateMemory(uint64_t size) {
+		//SPA_PROFILE_FUNCTION();
+
 		CApplication& app = CApplication::GetApplicationInstance();
 		VkDevice device = app.GetRenderer().GetGraphicsContext().GetDevice();
 		VkResult error_result;
@@ -155,6 +157,8 @@ namespace SPA {
 	}
 
 	void CVulkanImage::Release() {
+		SPA_PROFILE_FUNCTION();
+
 		CApplication& app = CApplication::GetApplicationInstance();
 		VkDevice device = CApplication::GetApplicationInstance().GetRenderer().GetGraphicsContext().GetDevice();
 
@@ -178,6 +182,8 @@ namespace SPA {
 	}
 
 	void CVulkanImage::SetData(const void* data) {
+		//SPA_PROFILE_FUNCTION();
+
 		CApplication& app = CApplication::GetApplicationInstance();
 		VkDevice device = app.GetRenderer().GetGraphicsContext().GetDevice();
 		size_t upload_size = m_width * m_height * Utilities::GetBytesPerPixel(m_format);
@@ -275,6 +281,8 @@ namespace SPA {
 	}
 
 	void* CVulkanImage::Decode(const void* a_buffer, uint64_t a_length, uint32_t & a_out_width, uint32_t & a_out_height) {
+		//SPA_PROFILE_FUNCTION();
+
 		int width;
 		int height;
 		int channels;
@@ -291,6 +299,8 @@ namespace SPA {
 	}
 
 	void CVulkanImage::Resize(uint32_t a_width, uint32_t a_height) {
+		//SPA_PROFILE_FUNCTION();
+
 		if (m_image && m_width == a_width && m_height == a_height) {
 			return;
 		}

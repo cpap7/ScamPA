@@ -11,11 +11,13 @@ namespace SPA {
 	}
 
 	void CLayerStack::PushLayer(const std::shared_ptr<ILayer>& a_layer) {
+		//SPA_PROFILE_FUNCTION();
 		m_layers.emplace_back(a_layer);
 		a_layer->OnAttach();
 	}
 	 
 	void CLayerStack::PopLayer(const std::shared_ptr<ILayer>& a_target_layer) {
+		//SPA_PROFILE_FUNCTION();
 		auto target = std::find(m_layers.begin(), m_layers.end(), a_target_layer);
 
 		if (target != m_layers.end()) { // If found

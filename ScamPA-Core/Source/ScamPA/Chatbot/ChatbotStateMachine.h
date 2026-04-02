@@ -15,22 +15,24 @@
 namespace SPA {
 
 	/*  Chatbot Finite State Machine — Transition Table
-		--------------------------------------------------------------
-		State        | + Event           | -> Next State
-		--------------------------------------------------------------
-		Idle         | + Record          | -> Listening
-		Recording    | + Infer           | -> Transcribing
-		Recording    | + Cancel          | -> Idle
-		Transcribing | + (STT done)      | -> Inferring       [worker]
-		Transcribing | + (STT failed)    | -> Error           [worker]
-		Transcribing | + Cancel          | -> Idle
-		Inferring    | + (LLM done)      | -> Speaking        [worker]
-		Inferring    | + (LLM failed)    | -> Error           [worker]
-		Inferring    | + Cancel          | -> Idle
-		Speaking     | + PlaybackDrained | -> Listening (chat loop)	
-		Speaking     | + Cancel          | -> Idle
-		Error        | + Record          | -> Listening
-		--------------------------------------------------------------
+		------------------------------------------------------------------------------------------
+		State        | + Event           | -> Next State               | Function Called
+		------------------------------------------------------------------------------------------
+		Idle         | + Record          | -> Listening                | ListenAndWait()
+		Listening    | + Infer           | -> Transcribing             | StopAndInfer()
+		Listening    | + Infer (empty)   | -> Idle         [no audio]  | StopAndInfer()
+		Listening    | + Cancel          | -> Idle                     | CancelAll()
+		Transcribing | + (STT done)      | -> Inferring    [worker]    | RunPipeline()
+		Transcribing | + (STT failed)    | -> Error        [worker]    | SetError()
+		Transcribing | + Cancel          | -> Idle                     | CancelAll()
+		Inferring    | + (LLM done)      | -> Speaking     [worker]    | RunPipeline()
+		Inferring    | + (LLM failed)    | -> Error        [worker]    | SetError()
+		Inferring    | + Cancel          | -> Idle                     | CancelAll()
+		Speaking     | + PlaybackDrained | -> Listening    [chat loop] | ListenAndWait()
+		Speaking     | + Cancel          | -> Idle                     | CancelAll()
+		Error        | + Record          | -> Listening                | ListenAndWait()
+		Error        | + Cancel          | -> Idle                     | Transition()
+		------------------------------------------------------------------------------------------
 	*/
 
 	enum class EChatbotState : uint8_t {
@@ -56,6 +58,7 @@ namespace SPA {
 		std::string m_last_stt_transcript;
 		std::string m_last_llm_response;
 		std::string m_last_error;
+		float m_last_stt_confidence = 0.0f;
 	};
 
 	struct SFSMTokenBuffer {
@@ -104,6 +107,7 @@ namespace SPA {
 		std::string GetLastSTTTranscript() const;
 		std::string GetLastLLMResponse() const;
 		std::string GetLastError() const;
+		float GetLastSTTConfidence() const;
 
 		inline void SetChatLoop(bool a_toggle)	{ m_chat_loop = a_toggle;		}
 		inline bool IsChatLooping() const		{ return m_chat_loop.load();	}

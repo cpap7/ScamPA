@@ -14,6 +14,8 @@ namespace SPA {
 	}
 
 	void CVulkanContext::Init(const char** a_extensions, uint32_t a_extension_count) {
+		//SPA_PROFILE_FUNCTION();
+
 		// Setup Vulkan core
 		CreateInstance(a_extensions, a_extension_count);
 		SelectPhysicalDevice();
@@ -25,6 +27,8 @@ namespace SPA {
 	}
 
 	VkCommandBuffer CVulkanContext::AllocateCommandBuffer(VkCommandPool a_command_pool, bool a_begin_flag) {
+		//SPA_PROFILE_FUNCTION();
+
 		VkCommandBufferAllocateInfo cmd_buf_allocate_info = {};
 		cmd_buf_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		cmd_buf_allocate_info.commandPool = a_command_pool;
@@ -47,6 +51,8 @@ namespace SPA {
 	}
 
 	void CVulkanContext::FlushCommandBuffer(VkCommandBuffer a_command_buffer) {
+		//SPA_PROFILE_FUNCTION();
+
 		const uint64_t DEFAULT_FENCE_TIMEOUT = 100000000000;
 
 		VkSubmitInfo end_info = {};
@@ -75,10 +81,14 @@ namespace SPA {
 	}
 
 	void CVulkanContext::SubmitResourceFree(uint32_t a_current_frame_index, std::function<void()>&& a_function) {
+		//SPA_PROFILE_FUNCTION();
+
 		m_resource_free_queues[a_current_frame_index].emplace_back(a_function);
 	}
 
 	void CVulkanContext::ProcessResourceFreeQueue(uint32_t a_frame_index) {
+		//SPA_PROFILE_FUNCTION();
+
 		for (auto& function : m_resource_free_queues[a_frame_index]) {
 			function();
 		}
@@ -86,6 +96,8 @@ namespace SPA {
 	}
 
 	void CVulkanContext::CreateInstance(const char** a_extensions, uint32_t a_extension_count) {
+		//SPA_PROFILE_FUNCTION();
+
 		VkResult error;
 
 		// Create Vulkan Instance
@@ -134,6 +146,8 @@ namespace SPA {
 	}
 
 	void CVulkanContext::SelectPhysicalDevice() {
+		//SPA_PROFILE_FUNCTION();
+
 		VkResult error;
 
 		// Select GPU device
@@ -164,6 +178,8 @@ namespace SPA {
 	}
 
 	void CVulkanContext::CreateLogicalDevice() {
+		//SPA_PROFILE_FUNCTION();
+
 		VkResult error;
 
 		{ // Select graphics queue family
@@ -207,6 +223,8 @@ namespace SPA {
 	}
 	
 	void CVulkanContext::CreateDescriptorPool() {
+		//SPA_PROFILE_FUNCTION();
+
 		VkResult error;
 		
 		// Create Descriptor Pool
@@ -236,6 +254,8 @@ namespace SPA {
 	}
 
 	void CVulkanContext::Shutdown() {
+		//SPA_PROFILE_FUNCTION();
+
 		// Cleanup
 
 		if (m_device) {

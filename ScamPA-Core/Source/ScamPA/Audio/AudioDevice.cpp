@@ -6,6 +6,8 @@
 
 namespace SPA {
 	std::unique_ptr<IAudioDevice> IAudioDevice::Create(const SAudioDeviceConfig a_config) {
+		SPA_PROFILE_FUNCTION();
+
 		switch (a_config.m_device_type) {
 			case EAudioDeviceType::Capture:		
 			case EAudioDeviceType::Loopback:	return std::make_unique<CAudioInputDevice>(a_config);

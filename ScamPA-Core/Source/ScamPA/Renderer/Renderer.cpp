@@ -8,6 +8,7 @@ namespace SPA {
 	}
 
 	void CRenderer::BeginFrame() {
+		//SPA_PROFILE_FUNCTION();
 		if (m_swapchain.NeedsRebuild()) {
 			return;
 		}
@@ -16,6 +17,7 @@ namespace SPA {
 	}
 
 	void CRenderer::EndFrame() {
+		//SPA_PROFILE_FUNCTION();
 		if (m_swapchain.NeedsRebuild()) {
 			return;
 		}
@@ -30,10 +32,12 @@ namespace SPA {
 	}
 
 	VkCommandBuffer CRenderer::GetCommandBuffer(bool a_begin_flag) {
+		//SPA_PROFILE_FUNCTION();
 		return m_swapchain.GetCommandBuffer(a_begin_flag);
 	}
 	
 	void CRenderer::SubmitResourceFree(std::function<void()>&& a_function) {
+		//SPA_PROFILE_FUNCTION();
 		m_graphics_context.SubmitResourceFree(m_swapchain.GetCurrentFrameIndex(), std::move(a_function));
 	}
 }

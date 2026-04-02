@@ -5,6 +5,7 @@
 
 namespace SPA {
 	void InitializeCore() {
+		SPA_PROFILE_FUNCTION();
 		CLogger::Init();
 
 		SPA_CORE_TRACE("ScamPA-Core Engine {0}", SPA_BUILD_VERSION);
@@ -12,6 +13,7 @@ namespace SPA {
 	}
 
 	void ShutdownCore() {
+		SPA_PROFILE_FUNCTION();
 		SPA_CORE_TRACE("[ENGINE] Shutting down...");
 	}
 }

@@ -13,12 +13,13 @@ namespace SPA {
 		std::string m_prompt;
 		std::string m_response;
 		CUUID32 m_uuid; // Auto generated on construction
+		float m_stt_confidence = 0.0f;
 
 		SChatExchange() = default;
-		SChatExchange(const std::string& a_prompt, const std::string& a_response) 
-			: m_prompt(a_prompt), m_response(a_response) { }
-		SChatExchange(const std::string& a_prompt, const std::string& a_response, const CUUID32& a_uuid) 
-			: m_prompt(a_prompt), m_response(a_response), m_uuid(a_uuid) { }
+		SChatExchange(const std::string& a_prompt, const std::string& a_response, float a_stt_confidence) 
+			: m_prompt(a_prompt), m_response(a_response), m_stt_confidence(a_stt_confidence) { }
+		SChatExchange(const std::string& a_prompt, const std::string& a_response, float a_stt_confidence, const CUUID32& a_uuid) 
+			: m_prompt(a_prompt), m_response(a_response), m_stt_confidence(a_stt_confidence), m_uuid(a_uuid) { }
 		
 		~SChatExchange() = default;
 		SChatExchange(const SChatExchange& a_other) = default;
@@ -50,8 +51,8 @@ namespace SPA {
 		SChatSession& operator=(SChatSession&& a_other) = default;
 
 		// Used by chatbot panel to append chat exchanges
-		inline void AddExchange(const std::string& a_prompt, const std::string& a_response) {
-			m_exchanges.emplace_back(a_prompt, a_response);
+		inline void AddExchange(const std::string& a_prompt, const std::string& a_response, float a_stt_confidence = 0.0f) {
+			m_exchanges.emplace_back(a_prompt, a_response, a_stt_confidence);
 		}
 	};
 

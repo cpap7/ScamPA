@@ -31,6 +31,8 @@ namespace SPA {
 	}
 
 	void CImGuiLayer::OnAttach() {
+		SPA_PROFILE_FUNCTION();
+
 		CApplication& application = CApplication::GetApplicationInstance();
 		m_use_custom_titlebar = application.GetWindowHandle().HasCustomTitlebar();
 
@@ -133,6 +135,8 @@ namespace SPA {
 	}
 
 	void CImGuiLayer::OnDetach() {
+		SPA_PROFILE_FUNCTION();
+
 		// Release icon resources
 		m_app_header_icon.reset();
 		m_icon_close.reset();
@@ -157,6 +161,8 @@ namespace SPA {
 	}
 	
 	void CImGuiLayer::OnEvent(IEvent& a_event) {
+		SPA_PROFILE_FUNCTION();
+
 		if (m_is_blocking_events) {
 			ImGuiIO& io = ImGui::GetIO();
 
@@ -169,12 +175,16 @@ namespace SPA {
 	}
 
 	void CImGuiLayer::BeginFrame() {
+		SPA_PROFILE_FUNCTION();
+
 		ImGui_ImplVulkan_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 	}
 
 	void CImGuiLayer::EndFrame() {
+		SPA_PROFILE_FUNCTION();
+
 		// Setup display size
 		ImGuiIO& io = ImGui::GetIO();
 		CApplication& application = CApplication::GetApplicationInstance();
@@ -197,6 +207,8 @@ namespace SPA {
 	}
 
 	void CImGuiLayer::RenderDockspace() {
+		SPA_PROFILE_FUNCTION();
+
 		// Setup dockspace
 		static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
@@ -253,6 +265,8 @@ namespace SPA {
 	}
 
 	void CImGuiLayer::RenderCustomMenubar() {
+		SPA_PROFILE_FUNCTION();
+
 		if (!m_menubar_callback)
 			return;
 
@@ -277,6 +291,8 @@ namespace SPA {
 	}
 
 	void CImGuiLayer::RenderCustomTitlebar(float& a_out_titlebar_height) {
+		SPA_PROFILE_FUNCTION();
+
 		CApplication& app = CApplication::GetApplicationInstance();
 		SApplicationSpecification app_spec = app.GetSpecification();
 		app_spec.m_name = app.GetApplicationVersion();

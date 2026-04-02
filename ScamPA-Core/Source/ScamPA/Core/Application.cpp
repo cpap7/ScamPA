@@ -14,7 +14,8 @@ namespace SPA {
 
 	CApplication::CApplication(const SApplicationSpecification& a_specification)
 		: m_specification(a_specification) {
-
+		SPA_PROFILE_FUNCTION();
+		
 		SPA_CORE_ASSERT(!s_instance, "(Application) App instance already exists!");
 
 		s_instance = this;
@@ -24,6 +25,8 @@ namespace SPA {
 	}
 
 	CApplication::~CApplication() {
+		SPA_PROFILE_FUNCTION();
+
 		Shutdown();
 
 		g_application_running = false;
@@ -31,6 +34,8 @@ namespace SPA {
 	}
 
 	void CApplication::Run() {
+		SPA_PROFILE_FUNCTION();
+
 		m_is_running = true;
 		
 		// Main loop
@@ -78,6 +83,7 @@ namespace SPA {
 	}
 
 	void CApplication::Close() {
+		SPA_PROFILE_FUNCTION();
 		m_is_running = false;
 	}
 
@@ -94,6 +100,7 @@ namespace SPA {
 	}
 
 	CApplication& CApplication::GetApplicationInstance() {
+		SPA_PROFILE_FUNCTION();
 		SPA_CORE_ASSERT(s_instance, "(Application) App instance does not exist!");
 		return *s_instance;
 	}
@@ -111,10 +118,12 @@ namespace SPA {
 	}
 
 	void CApplication::SetMenubarCallback(const std::function<void()>& a_menubar_callback) {
+		SPA_PROFILE_FUNCTION();
 		m_imgui_layer->SetMenubarCallback(a_menubar_callback);
 	}
 
 	void CApplication::RenderImGui() {
+		SPA_PROFILE_FUNCTION();
 		m_imgui_layer->BeginFrame(); 			// Must be called before any additional layer calls are made
 		m_imgui_layer->RenderDockspace();
 
@@ -127,11 +136,13 @@ namespace SPA {
 	}
 
 	void CApplication::RenderVulkan() {
+		SPA_PROFILE_FUNCTION();
 		m_renderer->BeginFrame(); 			// Begin Vulkan rendering -- acquires images, begins render pass
 		m_renderer->EndFrame(); 			// End frame -- records draw data & presents frame
 	}
 
 	void CApplication::Init() {
+		SPA_PROFILE_FUNCTION();
 		SPA_CORE_INFO("Initializing application: {0}", m_specification.m_name);
 
 		// Create the window
@@ -192,6 +203,7 @@ namespace SPA {
 	}
 
 	void CApplication::Shutdown() {
+		SPA_PROFILE_FUNCTION();
 		SPA_CORE_INFO("(Application) Shutting down...");
 
 		// Wait for device to finish all operations
@@ -221,6 +233,7 @@ namespace SPA {
 	}
 
 	void CApplication::OnEvent(IEvent& a_event) {
+		SPA_PROFILE_FUNCTION();
 		CEventDispatcher dispatcher(a_event);
 		
 		dispatcher.Dispatch<CWindowResizedEvent>(SPA_BIND_EVENT_FN(OnWindowResize));
@@ -238,6 +251,7 @@ namespace SPA {
 	}
 	
 	bool CApplication::OnWindowResize(CWindowResizedEvent& a_event) {
+		SPA_PROFILE_FUNCTION();
 		// NOTE: This is specific to glfw; not the same as resizing via imgui
 		int width = a_event.GetWidth();
 		int height = a_event.GetHeight();
@@ -256,6 +270,7 @@ namespace SPA {
 	}
 
 	bool CApplication::OnWindowClose(CWindowClosedEvent& a_event) {
+		SPA_PROFILE_FUNCTION();
 		//m_is_running = false;
 		Close();
 		return true;

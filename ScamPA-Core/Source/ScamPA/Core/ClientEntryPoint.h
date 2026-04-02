@@ -1,4 +1,5 @@
 #pragma once
+#include "../Debug/Instrumentor.h"
 
 #ifdef SPA_PLATFORM_WINDOWS
 
@@ -10,14 +11,23 @@
 	
 		int main(int argc, char** argv) {
 			while (g_application_running) {
-				// Setup
+				// Initialization
+				SPA_PROFILE_BEGIN_SESSION("Startup", "SPAProfile-Startup.json");
 				SPA::InitializeCore();
 				SPA::CApplication* app = SPA::CreateApplication(argc, argv);
+				SPA_PROFILE_END_SESSION();
+				
+				// Runtime
+				SPA_PROFILE_BEGIN_SESSION("Runtime", "SPAProfile-Runtime.json");
 				app->Run();
+				SPA_PROFILE_END_SESSION();
 
-				// Cleanup
+				// Shutdown
+				SPA_PROFILE_BEGIN_SESSION("Shutdown", "SPAProfile-Shutdown.json");
 				delete app;
 				SPA::ShutdownCore();
+				SPA_PROFILE_END_SESSION();
+
 			}
 
 			return 0;

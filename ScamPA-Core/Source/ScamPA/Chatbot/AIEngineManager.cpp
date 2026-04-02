@@ -13,6 +13,8 @@ namespace SPA {
 	}
 
 	void CAIEngineManager::Setup(const SModelPaths& a_paths) {
+		SPA_PROFILE_FUNCTION();
+
 		if (!a_paths.m_stt_model_path.empty()) { 
 			LoadSTT(a_paths.m_stt_model_path);
 		}
@@ -29,6 +31,8 @@ namespace SPA {
 	}
 
 	void CAIEngineManager::LoadSTT(const std::string& a_stt_model_path) {
+		SPA_PROFILE_FUNCTION();
+
 		if (m_stt_engine_loading.load() || m_stt_engine) {
 			return;
 		}
@@ -50,6 +54,8 @@ namespace SPA {
 	}
 
 	void CAIEngineManager::LoadLLM(const std::string& a_llm_model_path) {
+		SPA_PROFILE_FUNCTION();
+
 		if (m_llm_engine_loading.load() || m_llm_engine) {
 			return;
 		}
@@ -72,6 +78,8 @@ namespace SPA {
 	}
 
 	void CAIEngineManager::LoadTTS(const std::string& a_tts_model_path, const std::string& a_tts_model_json_path) {
+		SPA_PROFILE_FUNCTION();
+
 		if (m_tts_engine_loading.load() || m_tts_engine) {
 			return;
 		}
@@ -96,6 +104,8 @@ namespace SPA {
 	}
 
 	void CAIEngineManager::Shutdown() {
+		SPA_PROFILE_FUNCTION();
+
 		// Finish pending loads before destruction
 		if (m_stt_thread.joinable()) {
 			m_stt_thread.join();

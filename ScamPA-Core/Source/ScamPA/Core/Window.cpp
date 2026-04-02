@@ -37,6 +37,7 @@ namespace SPA {
 	}
 
 	void CWindow::OnUpdate() {
+		//SPA_PROFILE_FUNCTION();
 		glfwPollEvents();
 
 		// OpenGL-specific
@@ -51,7 +52,8 @@ namespace SPA {
 	}
 
 	void CWindow::Init() {
-		
+		//SPA_PROFILE_FUNCTION();
+
 		if (!s_glfw_initialized) {
 			glfwSetErrorCallback(GLFWErrorCallback);
 			
@@ -132,6 +134,7 @@ namespace SPA {
 
 
 	void CWindow::SetupCallbacks() {
+		//SPA_PROFILE_FUNCTION();
 		// Titlebar test hit callback
 		glfwSetTitlebarHitTestCallback(m_window_handle, [](GLFWwindow* a_window, int a_x, int a_y, int* a_hit) {
 			SWindowData& data = *(SWindowData*)glfwGetWindowUserPointer(a_window);
@@ -250,6 +253,7 @@ namespace SPA {
 	}
 
 	void CWindow::Shutdown() {
+		//SPA_PROFILE_FUNCTION();
 		if (m_window_handle) {
 			glfwDestroyWindow(m_window_handle);
 			m_window_handle = nullptr;
@@ -258,6 +262,7 @@ namespace SPA {
 	}
 
 	void CWindow::ShowWindow() {
+		//SPA_PROFILE_FUNCTION();
 		if (m_window_handle) {
 			glfwShowWindow(m_window_handle);
 		}
@@ -284,6 +289,7 @@ namespace SPA {
 	}
 
 	VkSurfaceKHR CWindow::CreateSurface(VkInstance a_instance) {
+		//SPA_PROFILE_FUNCTION();
 		VkSurfaceKHR surface;
 		VkResult error_result = glfwCreateWindowSurface(a_instance, m_window_handle, nullptr, &surface);
 		

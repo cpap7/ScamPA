@@ -6,6 +6,8 @@ namespace SPA {
 	
 	CVulkanSwapchain::CVulkanSwapchain(CVulkanContext& a_graphics_context, VkSurfaceKHR a_surface, uint32_t a_width, uint32_t a_height) 
 		: m_graphics_context(a_graphics_context) {
+		//SPA_PROFILE_FUNCTION();
+
 		m_window_data.Surface = a_surface;
 
 		// Check for WSI support
@@ -70,6 +72,8 @@ namespace SPA {
 	}
 
 	CVulkanSwapchain::~CVulkanSwapchain() {
+		//SPA_PROFILE_FUNCTION();
+
 		ImGui_ImplVulkanH_DestroyWindow(
 			m_graphics_context.GetInstance(),
 			m_graphics_context.GetDevice(),
@@ -79,6 +83,8 @@ namespace SPA {
 	}
 
 	void CVulkanSwapchain::Resize(uint32_t a_width, uint32_t a_height) {
+		//SPA_PROFILE_FUNCTION();
+
 		if (a_width > 0 && a_height > 0) {
 			ImGui_ImplVulkan_SetMinImageCount(m_min_image_count);
 			ImGui_ImplVulkanH_CreateOrResizeWindow(
@@ -103,6 +109,8 @@ namespace SPA {
 	}
 
 	void CVulkanSwapchain::BeginFrame() {
+		//SPA_PROFILE_FUNCTION();
+
 		VkResult error;
 
 		// Wait for all fences to avoid semaphore reuse issues in multi-viewport mode
@@ -183,6 +191,8 @@ namespace SPA {
 	}
 
 	void CVulkanSwapchain::EndFrame(ImDrawData* a_draw_data) {
+		//SPA_PROFILE_FUNCTION();
+
 		if (m_needs_rebuild) {
 			return;
 		}
@@ -216,6 +226,8 @@ namespace SPA {
 	}
 
 	void CVulkanSwapchain::PresentFrame() {
+		//SPA_PROFILE_FUNCTION();
+
 		if (m_needs_rebuild) {
 			return;
 		}

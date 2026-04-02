@@ -48,6 +48,8 @@ namespace SPA {
 	}
 
 	void CChatbotStateMachine::Init() {
+		SPA_PROFILE_FUNCTION();
+
 		// Setup audio input device (STT / whisper.cpp)
 		SAudioDeviceConfig input_cfg;
 		input_cfg.m_sample_rate		= 16000; // whisper.cpp default
@@ -73,6 +75,8 @@ namespace SPA {
 	}
 
 	void CChatbotStateMachine::OnUpdate() {
+		SPA_PROFILE_FUNCTION();
+
 		// Listening -> Inferring
 		if (m_state == EChatbotState::Listening) {
 			auto* input_device = static_cast<CAudioInputDevice*>(m_audio_input_device.get());
@@ -106,6 +110,8 @@ namespace SPA {
 	}
 
 	void CChatbotStateMachine::OnEvent(EChatbotEvent a_event) {
+		SPA_PROFILE_FUNCTION();
+
 		// TODO: Consider using nested switch
 		switch (m_state.load()) {
 			case EChatbotState::Idle: {
@@ -134,8 +140,9 @@ namespace SPA {
 			}
 
 			case EChatbotState::Error: { 
-				// NOTE: Error logs will be handled & show up within the console 
-				// so we can just quickly transition states to avoid hiccups
+				// NOTE: Error logs will be handled within transition functions 
+				// Thus, they will show up within the console 
+				// So, we can just quickly transition states to avoid hiccups
 				if (a_event == EChatbotEvent::Record)		{ ListenAndWait(); }
 				else if (a_event == EChatbotEvent::Cancel)	{ Transition(EChatbotState::Idle); }
 				break;
@@ -143,23 +150,36 @@ namespace SPA {
 		}
  	}
 
-
 	std::string CChatbotStateMachine::GetLastSTTTranscript() const {
+		SPA_PROFILE_FUNCTION();
+
 		std::lock_guard<std::mutex> lock(m_fsm_results.m_mutex);
 		return m_fsm_results.m_last_stt_transcript;
 	}
 
 	std::string CChatbotStateMachine::GetLastLLMResponse() const {
+		SPA_PROFILE_FUNCTION();
+
 		std::lock_guard<std::mutex> lock(m_fsm_results.m_mutex);
 		return m_fsm_results.m_last_llm_response;
 	}
 
 	std::string CChatbotStateMachine::GetLastError() const {
+		SPA_PROFILE_FUNCTION();
+
 		std::lock_guard<std::mutex> lock(m_fsm_results.m_mutex);
 		return m_fsm_results.m_last_error;
 	}
+	float CChatbotStateMachine::GetLastSTTConfidence() const {
+		SPA_PROFILE_FUNCTION();
+
+		std::lock_guard<std::mutex> lock(m_fsm_results.m_mutex);
+		return m_fsm_results.m_last_stt_confidence;
+	}
 
 	void CChatbotStateMachine::ListenAndWait() {
+		SPA_PROFILE_FUNCTION();
+
 		{ // Clear stale results from previous cycle
 			std::lock_guard<std::mutex> lock(m_fsm_results.m_mutex);
 			m_fsm_results.m_last_stt_transcript.clear();
@@ -181,6 +201,8 @@ namespace SPA {
 	}
 
 	void CChatbotStateMachine::StopAndInfer() {
+		SPA_PROFILE_FUNCTION();
+
 		auto* input_device = static_cast<CAudioInputDevice*>(m_audio_input_device.get());
 		if (!input_device) {
 			SPA_CORE_WARN("(Chatbot FSM) No input device available!");
@@ -203,6 +225,8 @@ namespace SPA {
 	}
 
 	void CChatbotStateMachine::RunPipeline(std::vector<int16_t> a_raw_audio) {
+		SPA_PROFILE_FUNCTION();
+
 		auto* stt_engine = m_manager.GetSTTEngine();
 		auto* llm_engine = m_manager.GetLLMEngine();
 		auto* tts_engine = m_manager.GetTTSEngine();
@@ -231,10 +255,11 @@ namespace SPA {
 		}
 
 		std::string transcript = stt_result.Text();
-		SPA_CORE_INFO("(Chatbot FSM) Transcript: {0}", transcript);
+		SPA_CORE_INFO("(Chatbot FSM) Transcript: {0} (confidence: {1:.2f})", transcript, stt_result.Confidence());
 		{
 			std::lock_guard<std::mutex> lock(m_fsm_results.m_mutex);
 			m_fsm_results.m_last_stt_transcript = transcript;
+			m_fsm_results.m_last_stt_confidence = stt_result.Confidence();
 		}
 
 		// State: Inferring
@@ -284,6 +309,8 @@ namespace SPA {
 	}
 
 	void CChatbotStateMachine::CancelAll() {
+		SPA_PROFILE_FUNCTION();
+
 		m_cancel_requested = true;
 
 		// Stop audio devices
@@ -315,6 +342,8 @@ namespace SPA {
 	}
 
 	void CChatbotStateMachine::Transition(EChatbotState a_next) {
+		SPA_PROFILE_FUNCTION();
+
 		std::string current_state = Utilities::ChatbotStateToString(m_state);
 		std::string next_state = Utilities::ChatbotStateToString(a_next);
 		SPA_CORE_TRACE("(Chatbot FSM) Transitioning state: {0} -> {1}", current_state, next_state);
@@ -322,6 +351,8 @@ namespace SPA {
 	}
  
 	void CChatbotStateMachine::SetError(const std::string& a_message) {
+		SPA_PROFILE_FUNCTION();
+
 		{
 			std::lock_guard<std::mutex> lock(m_fsm_results.m_mutex);
 			m_fsm_results.m_last_error = a_message;
@@ -331,6 +362,8 @@ namespace SPA {
 	}
 
 	void CChatbotStateMachine::AccumulateToken(const std::string& a_token) {
+		SPA_PROFILE_FUNCTION();
+
 		std::lock_guard<std::mutex> lock(m_fsm_token_buffer.m_mutex);
 
 		m_fsm_token_buffer.m_current_sentence += a_token;
@@ -359,6 +392,8 @@ namespace SPA {
 	}
 
 	void CChatbotStateMachine::FlushTokens() {
+		SPA_PROFILE_FUNCTION();
+
 		std::lock_guard<std::mutex> lock(m_fsm_token_buffer.m_mutex);
 		
 		if (m_fsm_token_buffer.m_current_sentence.empty()) {

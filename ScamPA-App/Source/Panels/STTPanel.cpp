@@ -40,7 +40,7 @@ namespace SPA {
 		
 		m_audio_input_device = IAudioDevice::Create(config);
 		
-		RefreshDeviceList();
+		RefreshAudioDeviceList();
 	}
 
 	void CSTTPanel::OnShutdown() {
@@ -49,7 +49,7 @@ namespace SPA {
 		m_audio_input_device.reset();
 	}
 
-	void CSTTPanel::OnUIRender() {
+	void CSTTPanel::OnUIRender() { 
 		SPA_PROFILE_FUNCTION();
 
 		ImGui::Begin("Speech-To-Text Settings");
@@ -57,28 +57,40 @@ namespace SPA {
 		auto* stt_engine = m_manager.GetSTTEngine();
 		if (!stt_engine) {
 			ImGui::TextColored(ImVec4(1, 1, 0, 1), "STT Engine Not Loaded");
-			if (ImGui::Button("Load STT Model")) {
-				std::string stt_model_path = CApplication::GetApplicationInstance().OpenFile("Whisper Model (*.bin)\0*.bin\0\0");
-				if (!stt_model_path.empty()) {
-					m_manager.LoadSTT(stt_model_path);
-				}
-			}
+			ImGui::Separator();
+			
+			DisplayFilePathSettings();
+
 			ImGui::End();
 			return;
 		}
 		ImGui::TextColored(ImVec4(0, 1, 0, 1), "STT Engine Loaded");
+		ImGui::Separator();
+
+		DisplayFilePathSettings();
+		DisplayAudioDeviceSettings();
+		DisplayDebugUtilities();
+
+		ImGui::End();
+	}
+	
+	void CSTTPanel::DisplayFilePathSettings() {
+		SPA_PROFILE_FUNCTION();
 		ImGui::TextDisabled("Model Path");
 		ImGui::SameLine();
 		ImGui::InputText("##sttmodelpath", (char*)m_manager.GetSTTModelPath().c_str(), ImGuiInputTextFlags_ReadOnly);
-		if (ImGui::Button("Load Model")) {
+
+		if (ImGui::Button("Load STT Model")) {
 			std::string stt_model_path = CApplication::GetApplicationInstance().OpenFile("Whisper Model (*.bin)\0*.bin\0\0");
 			if (!stt_model_path.empty()) {
 				m_manager.LoadSTT(stt_model_path);
 			}
 		}
-
-
 		ImGui::Separator();
+	}
+	
+	void CSTTPanel::DisplayAudioDeviceSettings() {
+		SPA_PROFILE_FUNCTION();
 
 		auto* input_device = static_cast<CAudioInputDevice*>(m_audio_input_device.get());
 		if (!input_device) {
@@ -88,13 +100,13 @@ namespace SPA {
 		}
 
 		ImGui::Text("Input Audio Device Settings");
-		
+
 		{ // Device type selection
 			static const char* device_type_labels[] = {
 				"Capture (Mic)",
 				"Loopback (Speakers)"
 			};
-			
+
 			static const EAudioDeviceType device_type_values[] = {
 				EAudioDeviceType::Capture,
 				EAudioDeviceType::Loopback
@@ -119,12 +131,12 @@ namespace SPA {
 			if (ImGui::BeginCombo("Device Type", device_type_labels[current_index])) {
 				for (uint32_t i{}; i < 2; ++i) {
 					bool is_selected = (device_type_values[i] == m_selected_device_type);
-					
+
 					if (ImGui::Selectable(device_type_labels[i], is_selected)) {
 						if (device_type_values[i] != m_selected_device_type) {
 							// Update internal value, then refresh
-							m_selected_device_type = device_type_values[i]; 
-							Reinit();
+							m_selected_device_type = device_type_values[i];
+							ReloadAudioDevice();
 						}
 					}
 
@@ -139,12 +151,10 @@ namespace SPA {
 				ImGui::EndDisabled();
 			}
 		}
-		
-		
 
 		{ // Input device selection
 			const char* preview = "System Default";
-			if ((m_device_settings.m_selected_device_index >= 0) && 
+			if ((m_device_settings.m_selected_device_index >= 0) &&
 				(m_device_settings.m_selected_device_index < static_cast<int32_t>(m_device_settings.m_device_list.size()))) {
 				preview = m_device_settings.m_device_list[m_device_settings.m_selected_device_index].m_name.c_str();
 			}
@@ -192,7 +202,7 @@ namespace SPA {
 
 			//ImGui::SameLine();
 			if (ImGui::Button("Refresh Device List##input")) {
-				RefreshDeviceList();
+				RefreshAudioDeviceList();
 			}
 
 			if (m_is_recording) {
@@ -202,40 +212,9 @@ namespace SPA {
 		}
 
 		ImGui::Separator();
-
-		if (m_is_recording) {
-			if (ImGui::Button("Stop Recording")) {
-				m_is_recording = false;
-				input_device->Stop();
-
-				// Drain samples & convert to float for whisper.cpp
-				std::vector<int16_t> raw_samples = input_device->ConsumeBuffer();
-				if (!raw_samples.empty()) { 
-					std::vector<float> float_samples = Utilities::ConvertToFloatSamples(raw_samples);
-					VoxBox::STranscriptResult result = stt_engine->Transcribe(float_samples);
-					
-					m_last_transcript = result.Success() ? result.m_text : "";
-					if (m_last_transcript.empty()) {
-						SPA_CORE_WARN("(STT Panel) Transcription failed!");
-					}
-				}
-			}
-		}
-		else {
-			if (ImGui::Button("Start Recording")) {
-				m_is_recording = true;
-				input_device->Start();
-			}
-		}
-		if (!m_last_transcript.empty()) {
-			ImGui::Separator();
-			ImGui::TextWrapped("Transcript: %s", m_last_transcript.c_str());
-		}
-
-		ImGui::End();
 	}
 
-	void CSTTPanel::RefreshDeviceList() {
+	void CSTTPanel::RefreshAudioDeviceList() {
 		SPA_PROFILE_FUNCTION();
 
 		if (m_audio_input_device) {
@@ -249,6 +228,55 @@ namespace SPA {
 					break;
 				}
 			}
+		}
+	}
+
+	void CSTTPanel::ReloadAudioDevice() {
+		SPA_PROFILE_FUNCTION();
+
+		m_audio_input_device.reset();
+
+		SAudioDeviceConfig config;
+		config.m_sample_rate = 16000; // whisper.cpp default
+		config.m_channels = 1;
+		config.m_sample_format = EAudioSampleFormat::Int16;
+		config.m_device_type = m_selected_device_type; // Default = loopback (audio from speakers)
+
+		m_audio_input_device = IAudioDevice::Create(config);
+	}
+
+	void CSTTPanel::DisplayDebugUtilities() {
+		SPA_PROFILE_FUNCTION();
+
+		ImGui::Text("Debug Utilities");
+		
+		if (m_is_recording) {
+			if (ImGui::Button("Stop Recording")) {
+				m_is_recording = false;
+				m_audio_input_device->Stop();
+
+				// Drain samples & convert to float for whisper.cpp
+				std::vector<int16_t> raw_samples = m_audio_input_device->ConsumeBuffer();
+				if (!raw_samples.empty()) {
+					std::vector<float> float_samples = Utilities::ConvertToFloatSamples(raw_samples);
+					VoxBox::STranscriptResult result = m_manager.GetSTTEngine()->Transcribe(float_samples);
+
+					m_last_transcript = result.Success() ? result.m_text : "";
+					if (m_last_transcript.empty()) {
+						SPA_CORE_WARN("(STT Panel) Transcription failed!");
+					}
+				}
+			}
+		}
+		else {
+			if (ImGui::Button("Start Recording")) {
+				m_is_recording = true;
+				m_audio_input_device->Start();
+			}
+		}
+		if (!m_last_transcript.empty()) {
+			ImGui::Separator();
+			ImGui::TextWrapped("Transcript: %s", m_last_transcript.c_str());
 		}
 	}
 

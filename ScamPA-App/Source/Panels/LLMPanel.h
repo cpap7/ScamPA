@@ -19,7 +19,7 @@ namespace SPA {
 		int32_t m_top_k = 0;		// (<= 0) = vocab size
 		float m_top_p = 1.0f;		// 1.0f = disabled
 		float m_min_p = 0.0f;		// 0.0f = disabled
-		float m_temp = 0.0f;		// temp <= 0.0 to sample greedily, 0.0 to not output probabil.
+		float m_temp = 0.8f;		// temp <= 0.0 to sample greedily, 0.0 to not output probabil.
 		
 	public:
 		explicit CLLMPanel(CAIEngineManager& a_manager);
@@ -29,6 +29,10 @@ namespace SPA {
 		virtual void OnUIRender() override;
 
 	private:
+		void DisplayFilePathSettings();
+		void DisplaySamplerSettings();
+		void DisplayContextSettings();
+
 		void SaveContextSnapshot();
 		void LoadContextSnapshot();
 

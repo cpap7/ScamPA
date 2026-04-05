@@ -28,8 +28,13 @@ namespace SPA {
 		virtual void OnUIRender() override;
 
 	private:
-		void RefreshDeviceList();
-		void Reinit(); // Used internally after changing the device type within the UI (calls shutdown + init function)
+		void DisplayFilePathSettings();
+		void DisplayAudioDeviceSettings();
+		void RefreshAudioDeviceList();
+		void ReloadAudioDevice(); // Used internally after changing the device type within the UI (calls shutdown + init function)
+		void DisplayDebugUtilities();
+		
+		void Reinit();
 
 	};
 

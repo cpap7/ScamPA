@@ -28,7 +28,11 @@ namespace SPA {
 		virtual void OnUIRender() override;
 
 	private:
-		void RefreshDeviceList();
+		void DisplayFilePathSettings();
+		void DisplayAudioDeviceSettings();
+		void RefreshAudioDeviceList();
+		void DisplayVoiceSettings();
+		void DisplayDebugUtilities();
 	};
 
 }

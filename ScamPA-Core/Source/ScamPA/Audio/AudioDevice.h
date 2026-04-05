@@ -63,6 +63,9 @@ namespace SPA {
 		virtual std::vector<SAudioDeviceInfo> GetDeviceList() = 0;
 		virtual void SetDeviceByIndex(int32_t a_index) = 0;
 
+		// Optional overrides
+		virtual std::vector<int16_t> ConsumeBuffer() { return {}; } // Drains audio buffer & returns all buffered samples (used by input device)
+
 		// Getters
 		inline const SAudioDeviceConfig& GetConfig() const	{ return m_config;					}
 		inline uint32_t GetSampleRate()	const				{ return m_config.m_sample_rate;	}
@@ -71,8 +74,7 @@ namespace SPA {
 		inline EAudioSampleFormat GetSampleFormat() const	{ return m_config.m_sample_format;	}
 		inline EAudioDeviceType GetDeviceType()	const		{ return m_config.m_device_type;	}
 		inline bool IsActive() const						{ return m_is_active;				}
-
-
+		
 		// Factory
 		static std::unique_ptr<IAudioDevice> Create(const SAudioDeviceConfig a_config);
 	};

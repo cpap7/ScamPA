@@ -216,22 +216,22 @@ namespace SPA {
 		Init(m_config);
 	}
 
+	std::vector<int16_t> CAudioInputDevice::ConsumeBuffer() {
+		SPA_PROFILE_FUNCTION();
+
+		std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
+
+		std::vector<int16_t> consumed = std::move(m_audio_resource.m_buffer);
+		m_audio_resource.m_buffer.clear();
+
+		return consumed;
+	}
+
 	void CAudioInputDevice::SetCaptureCallback(const AudioCaptureCallbackFn& a_callback) {
 		SPA_PROFILE_FUNCTION();
 
 		std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
 		m_callback = a_callback;
-	}
-
-	std::vector<int16_t> CAudioInputDevice::ConsumeBuffer() {
-		SPA_PROFILE_FUNCTION();
-
-		std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
-		
-		std::vector<int16_t> consumed = std::move(m_audio_resource.m_buffer);
-		m_audio_resource.m_buffer.clear();
-		
-		return consumed;
 	}
 
 	float CAudioInputDevice::GetRecentRMSEnergy(size_t a_sample_count) const {

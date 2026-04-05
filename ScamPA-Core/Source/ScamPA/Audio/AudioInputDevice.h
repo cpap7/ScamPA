@@ -30,11 +30,10 @@ namespace SPA {
 
 		virtual std::vector<SAudioDeviceInfo> GetDeviceList() override;
 		virtual void SetDeviceByIndex(int32_t a_index) override;
+		virtual std::vector<int16_t> ConsumeBuffer() override; 		// Drains audio buffer & returns all buffered samples
 
 		void SetCaptureCallback(const AudioCaptureCallbackFn& a_callback);
 
-		// Drains audio buffer & returns all buffered samples
-		std::vector<int16_t> ConsumeBuffer();
 		float GetRecentRMSEnergy(size_t a_sample_count = 4800) const; 		// Non-consuming peek helper - gets RMS energy of last set of samples
 		size_t GetBufferedSampleCount() const; 								
 

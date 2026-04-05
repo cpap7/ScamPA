@@ -53,7 +53,7 @@ namespace SPA {
 		PlaybackDrained		// TTS output buffer empty
 	};
 
-	struct SFSMResult {
+	struct SFSMResult { // For caching
 		mutable std::mutex m_mutex;
 		std::string m_last_stt_transcript;
 		std::string m_last_llm_response;
@@ -61,12 +61,15 @@ namespace SPA {
 		float m_last_stt_confidence = 0.0f;
 	};
 
-	struct SFSMTokenBuffer {
+	struct SFSMTokenBuffer { // LLM response 
 		std::mutex m_mutex;
 		std::string m_current_sentence;
 		std::string m_full_response;
 	};
 	
+
+	// TODO: In hindsight, this was messier than I initially thought (thanks lack of sleep)
+	// - Nested switch within transition table for performance
 	class CChatbotStateMachine {
 	private:
 		SFSMResult m_fsm_results;
@@ -79,10 +82,9 @@ namespace SPA {
 
 		CAIEngineManager& m_manager;
 
-		// TODO: silence = end of input
 		CTimer m_silence_timer;
 		float m_silence_threshold	= 0.005f; // RMS energy floor
-		float m_silence_duration	= 2.0f; // Seconds of quiet after speech before auto-infer
+		float m_silence_duration	= 1.0f;   // Seconds of quiet after speech before auto-infer
 		bool m_speech_detected		= false;
 
 		std::atomic<EChatbotState> m_state{ EChatbotState::Idle };
@@ -118,16 +120,20 @@ namespace SPA {
 		
 		void ListenAndWait();
 		void StopAndInfer();
-		void RunPipeline(std::vector<int16_t> a_raw_audio);
+		void RunPipeline(std::vector<int16_t> a_raw_audio);		// Pass by copy here since we move samples during StopAndInfer()
+		void TranscribeAudio(const std::vector<int16_t>& a_raw_audio); // STT
+		void InferResponse(const std::string& a_transcript);	// LLM
+		void GenerateAudioResponse();						    // TTS
 		void CancelAll();
 
 		// Helpers
 		void Transition(EChatbotState a_next);
 		void SetError(const std::string& a_message);
 
-		// TTS streaming
-		void AccumulateToken(const std::string& a_token);
-		void FlushTokens();
+		void AccumulateTokens(const std::string& a_token); // LLM generation
+		void SynthesizeAudioFromTokens();
+		void FlushTokens(); 		// TTS streaming
+
 
 	};
 }

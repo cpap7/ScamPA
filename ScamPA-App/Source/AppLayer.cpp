@@ -18,12 +18,10 @@ namespace SPA {
 
 		// Configure paths
 		SModelPaths paths;
-		paths.m_stt_model_path				= "Assets/Models/STT/ggml-small.bin";
-		paths.m_llm_model_path				= "Assets/Models/LLM/llama-3.2-1b-instruct-q8_0.gguf";
-		
-		paths.m_tts_model_onnx_json_path	= "Assets/Models/TTS/en_US-libritts_r-medium.onnx.json";
-		paths.m_tts_model_onnx_path			= "Assets/Models/TTS/en_US-libritts_r-medium.onnx";
-		//paths.m_tts_espeak_data_path		= "Assets/Models/TTS/espeak-ng-data";
+		paths.m_stt_model_path;				 //= "Assets/Models/STT/ggml-small.bin";
+		paths.m_llm_model_path;				 //= "Assets/Models/LLM/llama-3.2-1b-instruct-q8_0.gguf";
+		paths.m_tts_model_onnx_json_path;	 //= "Assets/Models/TTS/en_US-libritts_r-medium.onnx.json";
+		paths.m_tts_model_onnx_path;		 //= "Assets/Models/TTS/en_US-libritts_r-medium.onnx";
 
 		// Create AI agent context & state machine
 		m_manager				= std::make_unique<CAIEngineManager>(paths);
@@ -49,11 +47,13 @@ namespace SPA {
 	}
 
 	void CAppLayer::OnUpdate(float a_timestep) {
-		// TODO: poll async inference results here
+		
 	}
 
 	void CAppLayer::OnUIRender() {
 		SPA_PROFILE_FUNCTION();
+		
+		//ImGui::ShowDemoWindow();
 
 		m_stt_panel->OnUIRender();
 		m_llm_panel->OnUIRender();

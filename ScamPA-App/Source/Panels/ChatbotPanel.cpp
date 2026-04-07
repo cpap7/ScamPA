@@ -53,7 +53,7 @@ namespace SPA {
 	}
 	
 	void CChatbotPanel::OnUIRender() { // TODO: Cleanup
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		ImGui::Begin("Chatbot FSM");
 		
@@ -181,7 +181,7 @@ namespace SPA {
 	}
 
 	void CChatbotPanel::UpdateChatLog() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		// Refresh cached results during STT transcription & LLM response after inference
 		std::string last_transcript = m_state_machine.GetLastSTTTranscript();
@@ -196,7 +196,7 @@ namespace SPA {
 	}
 
 	void CChatbotPanel::CommitChatLog() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		// Check if the full cycle is completed (Speaking -> Listening)
 		EChatbotState state = m_state_machine.GetState();
@@ -212,7 +212,7 @@ namespace SPA {
 	}
 
 	void CChatbotPanel::SaveToYAML() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		std::string file_path = CApplication::GetApplicationInstance().SaveFile("YAML File (*.yaml)\0*.yaml\0", "yaml");
 		
@@ -223,7 +223,7 @@ namespace SPA {
 	}
 	
 	void CChatbotPanel::SaveToJSON() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		std::string file_path = CApplication::GetApplicationInstance().SaveFile("JSON File (*.json)\0*.json\0", "json");
 		
@@ -234,7 +234,7 @@ namespace SPA {
 	}
 
 	void CChatbotPanel::LoadFromYAML() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		std::string file_path = CApplication::GetApplicationInstance().OpenFile("YAML File (*.yaml)\0*.yaml\0");
 		
@@ -245,7 +245,7 @@ namespace SPA {
 	}
 
 	void CChatbotPanel::LoadFromJSON() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		std::string file_path = CApplication::GetApplicationInstance().OpenFile("JSON File (*.json)\0*.json\0");
 		

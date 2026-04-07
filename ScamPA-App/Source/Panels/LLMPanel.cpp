@@ -18,8 +18,8 @@ namespace SPA {
 
 	}
 
-	void CLLMPanel::OnUIRender() { // TODO: Cleanup
-		SPA_PROFILE_FUNCTION();
+	void CLLMPanel::OnUIRender() {
+		//SPA_PROFILE_FUNCTION();
 
 		ImGui::Begin("LLM Settings");
 		auto* llm_engine = m_manager.GetLLMEngine();
@@ -45,7 +45,7 @@ namespace SPA {
 	}
 
 	void CLLMPanel::DisplayFilePathSettings() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		ImGui::TextDisabled("Model Path");
 		ImGui::SameLine();
@@ -61,7 +61,7 @@ namespace SPA {
 	}
 
 	void CLLMPanel::DisplaySamplerSettings() { // TODO: About modals for each setting
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		// Full vocab -> Top-K filter -> Top-P filter -> Min-P filter -> Temperature scaling -> Weighted random draw(seeded)
 		ImGui::Text("Sampler Settings");
@@ -120,7 +120,7 @@ namespace SPA {
 	}
 
 	void CLLMPanel::DisplayContextSettings() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		ImGui::Text("AI Context Settings");
 
@@ -169,7 +169,7 @@ namespace SPA {
 	}
 
 	void CLLMPanel::SaveContextSnapshot() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		std::string file_path = CApplication::GetApplicationInstance().SaveFile("BIN File (*.bin)\0*.bin\0", "bin");
 
@@ -180,7 +180,7 @@ namespace SPA {
 	}
 
 	void CLLMPanel::LoadContextSnapshot() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		std::string file_path = CApplication::GetApplicationInstance().OpenFile("BIN File (*.bin)\0*.bin\0");
 

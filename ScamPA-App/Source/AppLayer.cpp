@@ -12,7 +12,7 @@ namespace SPA {
 	}
 
 	void CAppLayer::OnAttach() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		CApplication::GetApplicationInstance().GetWindowHandle().SetTitle(SPA_VERSION_LONG);
 
@@ -36,7 +36,7 @@ namespace SPA {
 	}
 
 	void CAppLayer::OnDetach() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		m_tts_panel.reset();
 		m_llm_panel.reset();
@@ -51,7 +51,7 @@ namespace SPA {
 	}
 
 	void CAppLayer::OnUIRender() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 		
 		//ImGui::ShowDemoWindow();
 

@@ -17,7 +17,7 @@ namespace SPA {
 	}
 
 	void CTTSPanel::OnInit() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		SAudioDeviceConfig config;
 		config.m_sample_rate = 22050; // piper default
@@ -31,13 +31,13 @@ namespace SPA {
 	}
 
 	void CTTSPanel::OnShutdown() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		m_audio_output_device.reset();
 	}
 
 	void CTTSPanel::OnUIRender() { 
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		ImGui::Begin("Text-To-Speech Settings");
 		auto* tts_engine = m_manager.GetTTSEngine();
@@ -63,7 +63,7 @@ namespace SPA {
 	}
 
 	void CTTSPanel::DisplayFilePathSettings() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 		
 		ImGui::TextDisabled("Model Path ");
 		ImGui::SameLine();
@@ -96,7 +96,7 @@ namespace SPA {
 	}
 
 	void CTTSPanel::DisplayAudioDeviceSettings() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		ImGui::Text("Output Device Settings");
 		{ // Output device selection
@@ -151,7 +151,7 @@ namespace SPA {
 	}
 
 	void CTTSPanel::RefreshAudioDeviceList() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		if (m_audio_output_device) {
 			m_device_settings.m_device_list = m_audio_output_device->GetDeviceList();
@@ -168,7 +168,7 @@ namespace SPA {
 	}
 
 	void CTTSPanel::DisplayVoiceSettings() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		ImGui::Text("Voice Settings");
 
@@ -183,7 +183,7 @@ namespace SPA {
 	}
 
 	void CTTSPanel::DisplayDebugUtilities() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		ImGui::Text("Debug Utilities");
 

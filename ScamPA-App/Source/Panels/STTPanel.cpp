@@ -30,7 +30,7 @@ namespace SPA {
 	}
 
 	void CSTTPanel::OnInit() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		SAudioDeviceConfig config;
 		config.m_sample_rate	= 16000; // whisper.cpp default
@@ -44,13 +44,13 @@ namespace SPA {
 	}
 
 	void CSTTPanel::OnShutdown() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		m_audio_input_device.reset();
 	}
 
 	void CSTTPanel::OnUIRender() { 
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		ImGui::Begin("Speech-To-Text Settings");
 
@@ -75,7 +75,8 @@ namespace SPA {
 	}
 	
 	void CSTTPanel::DisplayFilePathSettings() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
+
 		ImGui::TextDisabled("Model Path");
 		ImGui::SameLine();
 		ImGui::InputText("##sttmodelpath", (char*)m_manager.GetSTTModelPath().c_str(), ImGuiInputTextFlags_ReadOnly);
@@ -90,7 +91,7 @@ namespace SPA {
 	}
 	
 	void CSTTPanel::DisplayAudioDeviceSettings() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		auto* input_device = static_cast<CAudioInputDevice*>(m_audio_input_device.get());
 		if (!input_device) {
@@ -215,7 +216,7 @@ namespace SPA {
 	}
 
 	void CSTTPanel::RefreshAudioDeviceList() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		if (m_audio_input_device) {
 			m_device_settings.m_device_list = m_audio_input_device->GetDeviceList();
@@ -232,7 +233,7 @@ namespace SPA {
 	}
 
 	void CSTTPanel::ReloadAudioDevice() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		m_audio_input_device.reset();
 
@@ -246,7 +247,7 @@ namespace SPA {
 	}
 
 	void CSTTPanel::DisplayDebugUtilities() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		ImGui::Text("Debug Utilities");
 		
@@ -281,7 +282,7 @@ namespace SPA {
 	}
 
 	void CSTTPanel::Reinit() {
-		SPA_PROFILE_FUNCTION();
+		//SPA_PROFILE_FUNCTION();
 
 		OnShutdown();
 		OnInit();

@@ -1,4 +1,6 @@
 #include "STTPanel.h"
+#include "../GUIUtilities.h"
+
 #include <ScamPA/Core/Logger.h>
 #include <ScamPA/Core/Application.h>
 #include <ScamPA/Audio/AudioInputDevice.h>
@@ -77,142 +79,144 @@ namespace SPA {
 	void CSTTPanel::DisplayFilePathSettings() {
 		//SPA_PROFILE_FUNCTION();
 
-		ImGui::TextDisabled("Model Path");
-		ImGui::SameLine();
-		ImGui::InputText("##sttmodelpath", (char*)m_manager.GetSTTModelPath().c_str(), ImGuiInputTextFlags_ReadOnly);
+		if (GUI::BeginTreeNode("STT Model Settings")) {
+			ImGui::TextDisabled("Model Path");
+			ImGui::SameLine();
+			ImGui::InputText("##sttmodelpath", (char*)m_manager.GetSTTModelPath().c_str(), ImGuiInputTextFlags_ReadOnly);
 
-		if (ImGui::Button("Load STT Model")) {
-			std::string stt_model_path = CApplication::GetApplicationInstance().OpenFile("Whisper Model (*.bin)\0*.bin\0\0");
-			if (!stt_model_path.empty()) {
-				m_manager.LoadSTT(stt_model_path);
+			if (ImGui::Button("Load STT Model")) {
+				std::string stt_model_path = CApplication::GetApplicationInstance().OpenFile("Whisper Model (*.bin)\0*.bin\0\0");
+				if (!stt_model_path.empty()) {
+					m_manager.LoadSTT(stt_model_path);
+				}
 			}
+
+			GUI::EndTreeNode();
 		}
-		ImGui::Separator();
 	}
 	
 	void CSTTPanel::DisplayAudioDeviceSettings() {
 		//SPA_PROFILE_FUNCTION();
+		if (GUI::BeginTreeNode("STT Audio Input Device Settings", false)) {
+			auto* input_device = static_cast<CAudioInputDevice*>(m_audio_input_device.get());
+			if (!input_device) {
+				ImGui::TextColored(ImVec4(1, 0, 0, 1), "Audio Device Failed To Initialize");
+				ImGui::End();
+				return;
+			}
 
-		auto* input_device = static_cast<CAudioInputDevice*>(m_audio_input_device.get());
-		if (!input_device) {
-			ImGui::TextColored(ImVec4(1, 0, 0, 1), "Audio Device Failed To Initialize");
-			ImGui::End();
-			return;
-		}
+			{ // Device type selection
+				static const char* device_type_labels[] = {
+					"Capture (Mic)",
+					"Loopback (Speakers)"
+				};
 
-		ImGui::Text("Input Audio Device Settings");
+				static const EAudioDeviceType device_type_values[] = {
+					EAudioDeviceType::Capture,
+					EAudioDeviceType::Loopback
+				};
 
-		{ // Device type selection
-			static const char* device_type_labels[] = {
-				"Capture (Mic)",
-				"Loopback (Speakers)"
-			};
+				constexpr uint32_t device_type_count = 2;
 
-			static const EAudioDeviceType device_type_values[] = {
-				EAudioDeviceType::Capture,
-				EAudioDeviceType::Loopback
-			};
-
-			constexpr uint32_t device_type_count = 2;
-
-			// Find current index for preview
-			uint32_t current_index = 0;
-			for (uint32_t i{}; i < device_type_count; ++i) {
-				if (device_type_values[i] == m_selected_device_type) {
-					current_index = i;
-					break;
+				// Find current index for preview
+				uint32_t current_index = 0;
+				for (uint32_t i{}; i < device_type_count; ++i) {
+					if (device_type_values[i] == m_selected_device_type) {
+						current_index = i;
+						break;
+					}
 				}
-			}
 
-			if (m_is_recording) { // Do not allow changes while recording audio
-				ImGui::BeginDisabled();
-			}
+				if (m_is_recording) { // Do not allow changes while recording audio
+					ImGui::BeginDisabled();
+				}
 
-			ImGui::SetNextItemWidth(-1);
-			if (ImGui::BeginCombo("Device Type", device_type_labels[current_index])) {
-				for (uint32_t i{}; i < 2; ++i) {
-					bool is_selected = (device_type_values[i] == m_selected_device_type);
+				ImGui::SetNextItemWidth(-1);
+				if (ImGui::BeginCombo("Device Type", device_type_labels[current_index])) {
+					for (uint32_t i{}; i < 2; ++i) {
+						bool is_selected = (device_type_values[i] == m_selected_device_type);
 
-					if (ImGui::Selectable(device_type_labels[i], is_selected)) {
-						if (device_type_values[i] != m_selected_device_type) {
-							// Update internal value, then refresh
-							m_selected_device_type = device_type_values[i];
-							ReloadAudioDevice();
+						if (ImGui::Selectable(device_type_labels[i], is_selected)) {
+							if (device_type_values[i] != m_selected_device_type) {
+								// Update internal value, then refresh
+								m_selected_device_type = device_type_values[i];
+								ReloadAudioDevice();
+							}
+						}
+
+						if (is_selected) {
+							ImGui::SetItemDefaultFocus();
 						}
 					}
-
-					if (is_selected) {
-						ImGui::SetItemDefaultFocus();
-					}
-				}
-				ImGui::EndCombo();
-			}
-
-			if (m_is_recording) {
-				ImGui::EndDisabled();
-			}
-		}
-
-		{ // Input device selection
-			const char* preview = "System Default";
-			if ((m_device_settings.m_selected_device_index >= 0) &&
-				(m_device_settings.m_selected_device_index < static_cast<int32_t>(m_device_settings.m_device_list.size()))) {
-				preview = m_device_settings.m_device_list[m_device_settings.m_selected_device_index].m_name.c_str();
-			}
-
-			if (m_is_recording) { // Do not allow changes while recording
-				ImGui::BeginDisabled();
-			}
-
-			ImGui::SetNextItemWidth(-1);
-			if (ImGui::BeginCombo("Input Device", preview)) {
-				// First entry = "System Default"
-				bool is_default_selected = (m_device_settings.m_selected_device_index == -1);
-				if (ImGui::Selectable("System Default", is_default_selected)) {
-					if (m_device_settings.m_selected_device_index != -1) {
-						m_device_settings.m_selected_device_index = -1;
-
-						if (m_audio_input_device) {
-							m_audio_input_device->SetDeviceByIndex(-1);
-						}
-					}
+					ImGui::EndCombo();
 				}
 
-				for (int32_t i{}; i < static_cast<int32_t>(m_device_settings.m_device_list.size()); ++i) {
-					const auto& info = m_device_settings.m_device_list[i];
-					bool is_selected = (m_device_settings.m_selected_device_index == i);
+				if (m_is_recording) {
+					ImGui::EndDisabled();
+				}
+			}
 
-					// Label default devices within the list
-					std::string label = info.m_is_default ? info.m_name + " (Default)" : info.m_name;
+			{ // Input device selection
+				const char* preview = "System Default";
+				if ((m_device_settings.m_selected_device_index >= 0) &&
+					(m_device_settings.m_selected_device_index < static_cast<int32_t>(m_device_settings.m_device_list.size()))) {
+					preview = m_device_settings.m_device_list[m_device_settings.m_selected_device_index].m_name.c_str();
+				}
 
-					if (ImGui::Selectable(label.c_str(), is_selected)) {
-						if (m_device_settings.m_selected_device_index != i) {
-							m_device_settings.m_selected_device_index = i;
+				if (m_is_recording) { // Do not allow changes while recording
+					ImGui::BeginDisabled();
+				}
+
+				ImGui::SetNextItemWidth(-1);
+				if (ImGui::BeginCombo("Input Device", preview)) {
+					// First entry = "System Default"
+					bool is_default_selected = (m_device_settings.m_selected_device_index == -1);
+					if (ImGui::Selectable("System Default", is_default_selected)) {
+						if (m_device_settings.m_selected_device_index != -1) {
+							m_device_settings.m_selected_device_index = -1;
+
 							if (m_audio_input_device) {
-								m_audio_input_device->SetDeviceByIndex(info.m_index);
+								m_audio_input_device->SetDeviceByIndex(-1);
 							}
 						}
 					}
-					if (is_selected) {
-						ImGui::SetItemDefaultFocus();
+
+					for (int32_t i{}; i < static_cast<int32_t>(m_device_settings.m_device_list.size()); ++i) {
+						const auto& info = m_device_settings.m_device_list[i];
+						bool is_selected = (m_device_settings.m_selected_device_index == i);
+
+						// Label default devices within the list
+						std::string label = info.m_is_default ? info.m_name + " (Default)" : info.m_name;
+
+						if (ImGui::Selectable(label.c_str(), is_selected)) {
+							if (m_device_settings.m_selected_device_index != i) {
+								m_device_settings.m_selected_device_index = i;
+								if (m_audio_input_device) {
+									m_audio_input_device->SetDeviceByIndex(info.m_index);
+								}
+							}
+						}
+						if (is_selected) {
+							ImGui::SetItemDefaultFocus();
+						}
 					}
+
+					ImGui::EndCombo();
 				}
 
-				ImGui::EndCombo();
+				//ImGui::SameLine();
+				if (ImGui::Button("Refresh Device List##input")) {
+					RefreshAudioDeviceList();
+				}
+
+				if (m_is_recording) {
+					ImGui::EndDisabled();
+				}
+
 			}
 
-			//ImGui::SameLine();
-			if (ImGui::Button("Refresh Device List##input")) {
-				RefreshAudioDeviceList();
-			}
-
-			if (m_is_recording) {
-				ImGui::EndDisabled();
-			}
-
+			GUI::EndTreeNode();
 		}
-
-		ImGui::Separator();
 	}
 
 	void CSTTPanel::RefreshAudioDeviceList() {
@@ -249,35 +253,79 @@ namespace SPA {
 	void CSTTPanel::DisplayDebugUtilities() {
 		//SPA_PROFILE_FUNCTION();
 
-		ImGui::Text("Debug Utilities");
-		
-		if (m_is_recording) {
-			if (ImGui::Button("Stop Recording")) {
-				m_is_recording = false;
-				m_audio_input_device->Stop();
+		if (GUI::BeginTreeNode("STT Debug Utilities", false)) {
+			auto* input_device = static_cast<CAudioInputDevice*>(m_audio_input_device.get());
+			if (!input_device) {
+				GUI::EndTreeNode();
+				return;
+			}
+			
 
-				// Drain samples & convert to float for whisper.cpp
-				std::vector<int16_t> raw_samples = m_audio_input_device->ConsumeBuffer();
-				if (!raw_samples.empty()) {
-					std::vector<float> float_samples = Utilities::ConvertToFloatSamples(raw_samples);
-					VoxBox::STranscriptResult result = m_manager.GetSTTEngine()->Transcribe(float_samples);
+			ImGui::BeginChild("AudioTranscript", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()), true);
+			ImGui::TextWrapped("Audio Transcript");
+			ImGui::Separator();
+			if (!m_last_transcript.empty()) {
+				ImGui::TextWrapped("Input: %s", m_last_transcript.c_str());
+			}
+			ImGui::EndChild();
 
-					m_last_transcript = result.Success() ? result.m_text : "";
-					if (m_last_transcript.empty()) {
-						SPA_CORE_WARN("(STT Panel) Transcription failed!");
-					}
+			if (ImGui::Button("Clear Transcript")) {
+				m_last_transcript.clear();
+			}
+
+			ImGui::SameLine();
+			
+			if (m_is_recording) {
+				if (ImGui::Button("Transcribe")) {
+					m_is_recording = false;
+					input_device->Stop();
+
+					DrainSamples(input_device);
+				}
+
+				// Silence detection during recording
+				// samples = sample rate * time window
+				// 4800 = 16000 hz * 0.3s (would be ~300 ms window @ 16 kHz)
+				// 3200 for 200 ms, 1600 for 100 ms etc
+				float rms_energy = input_device->GetRecentRMSEnergy(1600);
+				if (rms_energy > m_silence_threshold) {
+					m_speech_detected = true;
+					m_silence_timer.Reset();
+				}
+				else if (m_speech_detected && m_silence_timer.GetTimeElapsed() >= m_silence_duration) {
+					m_speech_detected = false;
+					m_is_recording = false;
+					input_device->Stop();
+
+					DrainSamples(input_device);
 				}
 			}
-		}
-		else {
-			if (ImGui::Button("Start Recording")) {
-				m_is_recording = true;
-				m_audio_input_device->Start();
+			else {
+				if (ImGui::Button("Start Recording")) {
+					m_is_recording = true;
+					m_speech_detected = false;
+					m_silence_timer.Reset();
+					input_device->Start();
+				}
 			}
+			
+
+			GUI::EndTreeNode();
 		}
-		if (!m_last_transcript.empty()) {
-			ImGui::Separator();
-			ImGui::TextWrapped("Transcript: %s", m_last_transcript.c_str());
+	}
+
+	void CSTTPanel::DrainSamples(CAudioInputDevice* a_input_device) {
+		// Drain samples & convert to float for whisper.cpp
+		std::vector<int16_t> raw_samples = a_input_device->ConsumeBuffer();
+		
+		if (!raw_samples.empty()) {
+			std::vector<float> float_samples = Utilities::ConvertToFloatSamples(raw_samples);
+			VoxBox::STranscriptResult result = m_manager.GetSTTEngine()->Transcribe(float_samples);
+
+			m_last_transcript = result.Success() ? result.m_text : "";
+			if (m_last_transcript.empty()) {
+				SPA_CORE_WARN("(STT Panel) Transcription failed!");
+			}
 		}
 	}
 

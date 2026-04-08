@@ -29,8 +29,10 @@ namespace SPA {
 
 	private:
 		void DisplayFilePathSettings();
+		
 		void DisplayAudioDeviceSettings();
 		void RefreshAudioDeviceList();
+
 		void DisplayVoiceSettings();
 		void DisplayDebugUtilities();
 	};

@@ -127,11 +127,11 @@ namespace SPA {
 		// Show in-progress results above history
 		ImGui::Text("Current Dialogue");
 		if (state == EChatbotState::Inferring || state == EChatbotState::Speaking) {
-			if (!m_stt_transcript.empty()) {
-				ImGui::TextWrapped("Prompt: %s (confidence = %.2f)", m_stt_transcript.c_str(), m_stt_confidence);
+			if (!m_pollable_results.m_stt_transcript.empty()) {
+				ImGui::TextWrapped("Prompt: %s (confidence = %.2f)", m_pollable_results.m_stt_transcript.c_str(), m_pollable_results.m_stt_confidence);
 			}
-			if (!m_llm_response.empty()) {
-				ImGui::TextWrapped("Agent: %s", m_llm_response.c_str());
+			if (!m_pollable_results.m_llm_response.empty()) {
+				ImGui::TextWrapped("Agent: %s", m_pollable_results.m_llm_response.c_str());
 			}
 
 			// Poll results & commit to transcript history on cycle completion
@@ -173,8 +173,8 @@ namespace SPA {
 		}
 
 		// Display error in footer
-		if (state == EChatbotState::Error && !m_error.empty()) {
-			ImGui::TextColored(ImVec4(1, 0, 0, 1), "Error: %s", m_error.c_str());
+		if (state == EChatbotState::Error && !m_pollable_results.m_error.empty()) {
+			ImGui::TextColored(ImVec4(1, 0, 0, 1), "Error: %s", m_pollable_results.m_error.c_str());
 		}
 
 		ImGui::End();
@@ -189,10 +189,10 @@ namespace SPA {
 		std::string last_error		= m_state_machine.GetLastError();
 		float last_confidence		= m_state_machine.GetLastSTTConfidence();
 
-		if (!last_transcript.empty())	{ m_stt_transcript = std::move(last_transcript);	}
-		if (!last_response.empty())		{ m_llm_response = std::move(last_response);		}
-		if (!last_error.empty())		{ m_error = std::move(last_error);					}
-		if (last_confidence > 0.0f)		{ m_stt_confidence = last_confidence;				}
+		if (!last_transcript.empty())	{ m_pollable_results.m_stt_transcript	= std::move(last_transcript);		}
+		if (!last_response.empty())		{ m_pollable_results.m_llm_response		= std::move(last_response);			}
+		if (!last_error.empty())		{ m_pollable_results.m_error			= std::move(last_error);			}
+		if (last_confidence > 0.0f)		{ m_pollable_results.m_stt_confidence	= last_confidence;					}
 	}
 
 	void CChatbotPanel::CommitChatLog() {
@@ -201,13 +201,13 @@ namespace SPA {
 		// Check if the full cycle is completed (Speaking -> Listening)
 		EChatbotState state = m_state_machine.GetState();
 		if (state == EChatbotState::Listening) {
-			if (!m_stt_transcript.empty() && !m_llm_response.empty()) { // Commit to history
-				m_active_session.AddExchange(m_stt_transcript, m_llm_response, m_stt_confidence);
+			if (!m_pollable_results.m_stt_transcript.empty() && !m_pollable_results.m_llm_response.empty()) { // Commit to history
+				m_active_session.AddExchange(m_pollable_results.m_stt_transcript, m_pollable_results.m_llm_response, m_pollable_results.m_stt_confidence);
 			}
-			m_stt_transcript.clear();
-			m_llm_response.clear();
-			m_error.clear();
-			m_stt_confidence = 0.0f;
+			m_pollable_results.m_stt_transcript.clear();
+			m_pollable_results.m_llm_response.clear();
+			m_pollable_results.m_error.clear();
+			m_pollable_results.m_stt_confidence = 0.0f;
 		}
 	}
 

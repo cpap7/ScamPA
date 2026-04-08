@@ -1,4 +1,5 @@
 #include "TTSPanel.h"
+#include "../GUIUtilities.h"
 
 #include <ScamPA/Core/Logger.h>
 #include <ScamPA/Core/Application.h>
@@ -17,8 +18,6 @@ namespace SPA {
 	}
 
 	void CTTSPanel::OnInit() {
-		//SPA_PROFILE_FUNCTION();
-
 		SAudioDeviceConfig config;
 		config.m_sample_rate = 22050; // piper default
 		config.m_channels = 1;
@@ -31,13 +30,10 @@ namespace SPA {
 	}
 
 	void CTTSPanel::OnShutdown() {
-		//SPA_PROFILE_FUNCTION();
-
 		m_audio_output_device.reset();
 	}
 
 	void CTTSPanel::OnUIRender() { 
-		//SPA_PROFILE_FUNCTION();
 
 		ImGui::Begin("Text-To-Speech Settings");
 		auto* tts_engine = m_manager.GetTTSEngine();
@@ -63,96 +59,94 @@ namespace SPA {
 	}
 
 	void CTTSPanel::DisplayFilePathSettings() {
-		//SPA_PROFILE_FUNCTION();
-		
-		ImGui::TextDisabled("Model Path ");
-		ImGui::SameLine();
-		ImGui::InputText("##ttsmodelonnxpath", (char*)m_manager.GetTTSOnnxModelPath().c_str(), ImGuiInputTextFlags_ReadOnly);
+		if (GUI::BeginTreeNode("TTS Model Settings", false)) {
+			ImGui::TextDisabled("Model Path ");
+			ImGui::SameLine();
+			ImGui::InputText("##ttsmodelonnxpath", (char*)m_manager.GetTTSOnnxModelPath().c_str(), ImGuiInputTextFlags_ReadOnly);
 
-		ImGui::TextDisabled("Config Path");
-		ImGui::SameLine();
-		ImGui::InputText("##ttsmodelonnxjsonpath", (char*)m_manager.GetTTSOnnxModelJsonPath().c_str(), ImGuiInputTextFlags_ReadOnly);
+			ImGui::TextDisabled("Config Path");
+			ImGui::SameLine();
+			ImGui::InputText("##ttsmodelonnxjsonpath", (char*)m_manager.GetTTSOnnxModelJsonPath().c_str(), ImGuiInputTextFlags_ReadOnly);
 
-		if (ImGui::Button("Load TTS Model")) {
-			std::string path = CApplication::GetApplicationInstance().OpenFile("Piper ONNX Model (*.onnx)\0*.onnx\0\0");
-			if (!path.empty()) {
-				m_manager.SetTTSOnnxModelPath(path);
+			if (ImGui::Button("Load TTS Model")) {
+				std::string path = CApplication::GetApplicationInstance().OpenFile("Piper ONNX Model (*.onnx)\0*.onnx\0\0");
+				if (!path.empty()) {
+					m_manager.SetTTSOnnxModelPath(path);
+				}
 			}
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Load TTS Model Config")) {
-			std::string path = CApplication::GetApplicationInstance().OpenFile("JSON Config (*json)\0*.json");
-			if (!path.empty()) {
-				m_manager.SetTTSOnnxModelJsonPath(path);
+			ImGui::SameLine();
+			if (ImGui::Button("Load TTS Model Config")) {
+				std::string path = CApplication::GetApplicationInstance().OpenFile("JSON Config (*json)\0*.json");
+				if (!path.empty()) {
+					m_manager.SetTTSOnnxModelJsonPath(path);
+				}
 			}
-		}
-		if (ImGui::Button("Load Engine")) {
-			if (!m_manager.GetTTSOnnxModelPath().empty() && !m_manager.GetTTSOnnxModelJsonPath().empty()) {
-				m_manager.LoadTTS(m_manager.GetTTSOnnxModelPath(), m_manager.GetTTSOnnxModelJsonPath());
+			if (ImGui::Button("Load Engine")) {
+				if (!m_manager.GetTTSOnnxModelPath().empty() && !m_manager.GetTTSOnnxModelJsonPath().empty()) {
+					m_manager.LoadTTS(m_manager.GetTTSOnnxModelPath(), m_manager.GetTTSOnnxModelJsonPath());
+				}
 			}
+			GUI::EndTreeNode();
 		}
-
-		ImGui::Separator();
 	}
 
 	void CTTSPanel::DisplayAudioDeviceSettings() {
-		//SPA_PROFILE_FUNCTION();
-
-		ImGui::Text("Output Device Settings");
-		{ // Output device selection
-			const char* preview = "System Default";
-			if ((m_device_settings.m_selected_device_index >= 0) && (m_device_settings.m_selected_device_index < static_cast<int32_t>(m_device_settings.m_device_list.size()))) {
-				preview = m_device_settings.m_device_list[m_device_settings.m_selected_device_index].m_name.c_str();
-			}
-
-			ImGui::SetNextItemWidth(-1);
-			if (ImGui::BeginCombo("Output Device", preview)) {
-				// First entry = "System Default"
-				bool is_default_selected = (m_device_settings.m_selected_device_index == -1);
-				if (ImGui::Selectable("System Default", is_default_selected)) {
-					if (m_device_settings.m_selected_device_index != -1) {
-						m_device_settings.m_selected_device_index = -1;
-
-						if (m_audio_output_device) {
-							m_audio_output_device->SetDeviceByIndex(-1);
-						}
-					}
+		if (GUI::BeginTreeNode("TTS Audio Output Device Settings", false)) {
+			{ // Output device selection
+				const char* preview = "System Default";
+				if ((m_device_settings.m_selected_device_index >= 0) 
+					&& (m_device_settings.m_selected_device_index < static_cast<int32_t>(m_device_settings.m_device_list.size()))) {
+					preview = m_device_settings.m_device_list[m_device_settings.m_selected_device_index].m_name.c_str();
 				}
 
-				for (int32_t i{}; i < static_cast<int32_t>(m_device_settings.m_device_list.size()); ++i) {
-					const auto& info = m_device_settings.m_device_list[i];
-					bool is_selected = (m_device_settings.m_selected_device_index == i);
+				ImGui::SetNextItemWidth(-1);
+				if (ImGui::BeginCombo("Output Device", preview)) {
+					// First entry = "System Default"
+					bool is_default_selected = (m_device_settings.m_selected_device_index == -1);
+					if (ImGui::Selectable("System Default", is_default_selected)) {
+						if (m_device_settings.m_selected_device_index != -1) {
+							m_device_settings.m_selected_device_index = -1;
 
-					// Label default devices within the list
-					std::string label = info.m_is_default ? info.m_name + " (Default)" : info.m_name;
-
-					if (ImGui::Selectable(label.c_str(), is_selected)) {
-						if (m_device_settings.m_selected_device_index != i) {
-							m_device_settings.m_selected_device_index = i;
 							if (m_audio_output_device) {
-								m_audio_output_device->SetDeviceByIndex(info.m_index);
+								m_audio_output_device->SetDeviceByIndex(-1);
 							}
 						}
 					}
-					if (is_selected) {
-						ImGui::SetItemDefaultFocus();
+
+					for (int32_t i{}; i < static_cast<int32_t>(m_device_settings.m_device_list.size()); ++i) {
+						const auto& info = m_device_settings.m_device_list[i];
+						bool is_selected = (m_device_settings.m_selected_device_index == i);
+
+						// Label default devices within the list
+						std::string label = info.m_is_default ? info.m_name + " (Default)" : info.m_name;
+
+						if (ImGui::Selectable(label.c_str(), is_selected)) {
+							if (m_device_settings.m_selected_device_index != i) {
+								m_device_settings.m_selected_device_index = i;
+								if (m_audio_output_device) {
+									m_audio_output_device->SetDeviceByIndex(info.m_index);
+								}
+							}
+						}
+						if (is_selected) {
+							ImGui::SetItemDefaultFocus();
+						}
 					}
+
+					ImGui::EndCombo();
 				}
 
-				ImGui::EndCombo();
+				//ImGui::SameLine();
+				if (ImGui::Button("Refresh Device List##output")) {
+					RefreshAudioDeviceList();
+				}
 			}
-
-			//ImGui::SameLine();
-			if (ImGui::Button("Refresh Device List##output")) {
-				RefreshAudioDeviceList();
-			}
+			GUI::EndTreeNode();
 		}
-		ImGui::Separator();
+		
 	}
 
 	void CTTSPanel::RefreshAudioDeviceList() {
-		//SPA_PROFILE_FUNCTION();
-
 		if (m_audio_output_device) {
 			m_device_settings.m_device_list = m_audio_output_device->GetDeviceList();
 			//m_device_settings.m_selected_device_index = -1; // Reset to system default on refresh
@@ -168,41 +162,35 @@ namespace SPA {
 	}
 
 	void CTTSPanel::DisplayVoiceSettings() {
-		//SPA_PROFILE_FUNCTION();
-
-		ImGui::Text("Voice Settings");
-
-		if (ImGui::SliderFloat("Verbal Delay", &m_verbal_delay, 0.5f, 2.0f, "%.2f")) {
-			m_manager.GetTTSEngine()->SetSpeed(m_verbal_delay);
+		if (GUI::BeginTreeNode("TTS Voice Settings", false)) {
+			if (ImGui::SliderFloat("Verbal Delay", &m_verbal_delay, 0.5f, 2.0f, "%.2f")) {
+				m_manager.GetTTSEngine()->SetSpeed(m_verbal_delay);
+			}
+			if (ImGui::SliderFloat("Noise Scale", &m_noise_scale, 0.0f, 1.0f, "%.2f")) {
+				m_manager.GetTTSEngine()->SetNoiseScale(m_noise_scale);
+			}
+			GUI::EndTreeNode();
 		}
-		if (ImGui::SliderFloat("Noise Scale", &m_noise_scale, 0.0f, 1.0f, "%.2f")) {
-			m_manager.GetTTSEngine()->SetNoiseScale(m_noise_scale);
-		}
-
-		ImGui::Separator();
 	}
 
 	void CTTSPanel::DisplayDebugUtilities() {
-		//SPA_PROFILE_FUNCTION();
+		if (GUI::BeginTreeNode("TTS Debug Utilities", false)) {
+			ImGui::InputTextMultiline("##tts_text", m_text_buffer, sizeof(m_text_buffer), ImVec2(-1, 100));
+			if (ImGui::Button("Synthesize Audio") && m_text_buffer[0] != '\0') {
 
-		ImGui::Text("Debug Utilities");
+				VoxBox::SAudioResult result = m_manager.GetTTSEngine()->Synthesize(m_text_buffer);
+				if (result.Success()) {
+					SPA_CLIENT_INFO("TTS synthesized {0} samples @ {1} Hz", result.SampleCount(), result.SampleRate());
 
-		ImGui::InputTextMultiline("##tts_text", m_text_buffer, sizeof(m_text_buffer), ImVec2(-1, 100));
-		if (ImGui::Button("Synthesize Audio") && m_text_buffer[0] != '\0') {
-			// NOTE: This will be blocking, so this might be better off being offloaded to a worker thread
-			VoxBox::SAudioResult result = m_manager.GetTTSEngine()->Synthesize(m_text_buffer);
-			if (result.Success()) {
-				SPA_CLIENT_INFO("TTS synthesized {0} samples @ {1} Hz", result.SampleCount(), result.SampleRate());
-
-				auto* output_device = static_cast<CAudioOutputDevice*>(m_audio_output_device.get());
-				if (output_device) {
-					output_device->ClearBuffer();
-					output_device->SubmitSamples(result.SampleData(), result.SampleCount());
-					output_device->Start();
+					auto* output_device = static_cast<CAudioOutputDevice*>(m_audio_output_device.get());
+					if (output_device) {
+						output_device->ClearBuffer();
+						output_device->SubmitSamples(result.SampleData(), result.SampleCount());
+						output_device->Start();
+					}
 				}
 			}
+			GUI::EndTreeNode();
 		}
-
-		ImGui::Separator();
 	}
 }

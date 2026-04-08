@@ -9,17 +9,20 @@
 namespace SPA {
 
 	class CChatbotPanel : public IPanel {
-	private:
-		SChatSession m_active_session;
+	public:
+		struct SPollableResults { // Copies of pollable results which are updated each frame
+			std::string m_stt_transcript;
+			std::string m_llm_response;
+			std::string m_error;
 
-		// Copies of pollable results which are updated each frame
-		// TODO: package into a struct
-		std::string m_stt_transcript;
-		std::string m_llm_response;
-		std::string m_error;
+			float m_stt_confidence = 0.0f;
+		};
+
+	private:
+		SPollableResults m_pollable_results;
+		SChatSession m_active_session;
 		
 		CChatbotStateMachine& m_state_machine;
-		float m_stt_confidence = 0.0f; // Pollable result (TODO: package into a struct)
 
 		bool m_results_committed = true; // For tracking transcript & response commits to the panel
 	

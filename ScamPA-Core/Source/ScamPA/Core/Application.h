@@ -98,7 +98,7 @@ namespace SPA {
 		static CApplication& GetApplicationInstance(); // For singleton
 		static const char* GetConfigurationName();
 		static const char* GetPlatformName();
-		static const char* GetApplicationVersion();				
+		static const char* GetApplicationVersion();
 
 		// Setters
 		void SetMenubarCallback(const std::function<void()>& a_menubar_callback);

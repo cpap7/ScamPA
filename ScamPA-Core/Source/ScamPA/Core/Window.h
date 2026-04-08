@@ -18,8 +18,8 @@ namespace SPA {
 		std::filesystem::path m_icon_path;
 		std::string m_title = "ScamPA Application";
 		
-		uint32_t m_width = 1280;
-		uint32_t m_height = 720;
+		uint32_t m_width = 1600;
+		uint32_t m_height = 900;
 
 		bool m_use_custom_titlebar	= false; // Use custom title bar instead of OS default
 		bool m_window_resizeable	= true;

@@ -1,7 +1,6 @@
 #include "spapch.h"
 #include "Application.h"
 #include "Version.h"
-//#include "ScamPA/ImGui/ImGuiLayer.h"
 
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -100,7 +99,6 @@ namespace SPA {
 	}
 
 	CApplication& CApplication::GetApplicationInstance() {
-		SPA_PROFILE_FUNCTION();
 		SPA_CORE_ASSERT(s_instance, "(Application) App instance does not exist!");
 		return *s_instance;
 	}
@@ -118,7 +116,6 @@ namespace SPA {
 	}
 
 	void CApplication::SetMenubarCallback(const std::function<void()>& a_menubar_callback) {
-		SPA_PROFILE_FUNCTION();
 		m_imgui_layer->SetMenubarCallback(a_menubar_callback);
 	}
 

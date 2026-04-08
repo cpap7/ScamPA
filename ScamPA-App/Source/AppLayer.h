@@ -8,6 +8,7 @@
 #include "Panels/LLMPanel.h"
 #include "Panels/TTSPanel.h"
 #include "Panels/ChatbotPanel.h"
+#include "Panels/ConsolePanel.h"
 
 #include <memory>
 
@@ -22,6 +23,7 @@ namespace SPA {
 		std::unique_ptr<CLLMPanel> m_llm_panel;
 		std::unique_ptr<CTTSPanel> m_tts_panel;
 		std::unique_ptr<CChatbotPanel> m_chatbot_panel;
+		std::unique_ptr<CConsolePanel> m_console_panel;
 
 	public:
 		CAppLayer();

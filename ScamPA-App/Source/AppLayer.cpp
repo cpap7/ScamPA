@@ -32,16 +32,16 @@ namespace SPA {
 		m_llm_panel			= std::make_unique<CLLMPanel>(*m_manager);
 		m_tts_panel			= std::make_unique<CTTSPanel>(*m_manager);
 		m_chatbot_panel		= std::make_unique<CChatbotPanel>(*m_chatbot_state_machine);
-
+		m_console_panel		= std::make_unique<CConsolePanel>();
 	}
 
 	void CAppLayer::OnDetach() {
 		//SPA_PROFILE_FUNCTION();
-
+		m_console_panel.reset();
+		m_chatbot_panel.reset();
 		m_tts_panel.reset();
 		m_llm_panel.reset();
 		m_stt_panel.reset();
-		m_chatbot_panel.reset();
 		m_chatbot_state_machine.reset();
 		m_manager.reset();
 	}
@@ -50,15 +50,14 @@ namespace SPA {
 		
 	}
 
-	void CAppLayer::OnUIRender() {
-		//SPA_PROFILE_FUNCTION();
-		
+	void CAppLayer::OnUIRender() {		
 		//ImGui::ShowDemoWindow();
 
 		m_stt_panel->OnUIRender();
 		m_llm_panel->OnUIRender();
 		m_tts_panel->OnUIRender();
 		m_chatbot_panel->OnUIRender();
+		m_console_panel->OnUIRender();
 	}
 
 	void CAppLayer::OnEvent(IEvent& a_event) {

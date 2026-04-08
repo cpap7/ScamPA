@@ -1,7 +1,7 @@
 #include "spapch.h"
 #include "ImGuiCustomUI.h"
 
-namespace SPA::UI {
+namespace SPA::GUI {
 
 	void ShiftCursorX(float a_distance) {
 		ImGui::SetCursorPosX(a_distance);
@@ -254,8 +254,7 @@ namespace SPA::UI {
 
 		//const ImRect& visibility_rect;
 
-		struct SImGuiResizeBorderDef
-		{
+		struct SImGuiResizeBorderDef {
 			ImVec2 m_inner_dir;
 			ImVec2 m_segment_n1, m_segment_n2;
 			float  m_outer_angle;
@@ -269,46 +268,43 @@ namespace SPA::UI {
 		};
 
 		// Data for resizing from corner
-		struct SImGuiResizeGripDef
-		{
-			ImVec2  CornerPosN;
+		struct SImGuiResizeGripDef {
+			ImVec2  m_corner_pos_n;
 			ImVec2  m_inner_dir;
-			int     AngleMin12, AngleMax12;
+			int     m_angle_min12, m_angle_max12;
 		};
-		static const SImGuiResizeGripDef resize_grip_def[4] =
-		{
+		static const SImGuiResizeGripDef resize_grip_def[4] = {
 			{ ImVec2(1, 1), ImVec2(-1, -1), 0, 3 },  // Lower-right
 			{ ImVec2(0, 1), ImVec2(+1, -1), 3, 6 },  // Lower-left
 			{ ImVec2(0, 0), ImVec2(+1, +1), 6, 9 },  // Upper-left (Unused)
 			{ ImVec2(1, 0), ImVec2(-1, +1), 9, 12 }  // Upper-right (Unused)
 		};
 
-		auto CalcResizePosSizeFromAnyCorner = [CalcWindowSizeAfterConstraint](ImGuiWindow* a_window, const ImVec2& corner_target, const ImVec2& corner_norm, ImVec2* out_pos, ImVec2* out_size)
+		auto CalcResizePosSizeFromAnyCorner = [CalcWindowSizeAfterConstraint](ImGuiWindow* a_window, const ImVec2& a_corner_target, const ImVec2& a_corner_norm, ImVec2* a_out_pos, ImVec2* a_out_size)
 			{
-				ImVec2 pos_min = ImLerp(corner_target, a_window->Pos, corner_norm);                // Expected window upper-left
-				ImVec2 pos_max = ImLerp({ a_window->Pos.x + a_window->Size.x, a_window->Pos.y + a_window->Size.y }, corner_target, corner_norm); // Expected window lower-right
+				ImVec2 pos_min = ImLerp(a_corner_target, a_window->Pos, a_corner_norm);                // Expected window upper-left
+				ImVec2 pos_max = ImLerp({ a_window->Pos.x + a_window->Size.x, a_window->Pos.y + a_window->Size.y }, a_corner_target, a_corner_norm); // Expected window lower-right
 				ImVec2 size_expected = { pos_max.x - pos_min.x,  pos_max.y - pos_min.y };
 				ImVec2 size_constrained = CalcWindowSizeAfterConstraint(a_window, size_expected);
-				*out_pos = pos_min;
-				if (corner_norm.x == 0.0f)
-					out_pos->x -= (size_constrained.x - size_expected.x);
-				if (corner_norm.y == 0.0f)
-					out_pos->y -= (size_constrained.y - size_expected.y);
-				*out_size = size_constrained;
+				*a_out_pos = pos_min;
+				if (a_corner_norm.x == 0.0f)
+					a_out_pos->x -= (size_constrained.x - size_expected.x);
+				if (a_corner_norm.y == 0.0f)
+					a_out_pos->y -= (size_constrained.y - size_expected.y);
+				*a_out_size = size_constrained;
 			};
 
-		auto GetResizeBorderRect = [](ImGuiWindow* a_window, int border_n, float perp_padding, float thickness)
+		auto GetResizeBorderRect = [](ImGuiWindow* a_window, int a_border_n, float a_perp_padding, float a_thickness)
 			{
 				ImRect rect = a_window->Rect();
-				if (thickness == 0.0f)
-				{
+				if (a_thickness == 0.0f) {
 					rect.Max.x -= 1;
 					rect.Max.y -= 1;
 				}
-				if (border_n == ImGuiDir_Left) { return ImRect(rect.Min.x - thickness, rect.Min.y + perp_padding, rect.Min.x + thickness, rect.Max.y - perp_padding); }
-				if (border_n == ImGuiDir_Right) { return ImRect(rect.Max.x - thickness, rect.Min.y + perp_padding, rect.Max.x + thickness, rect.Max.y - perp_padding); }
-				if (border_n == ImGuiDir_Up) { return ImRect(rect.Min.x + perp_padding, rect.Min.y - thickness, rect.Max.x - perp_padding, rect.Min.y + thickness); }
-				if (border_n == ImGuiDir_Down) { return ImRect(rect.Min.x + perp_padding, rect.Max.y - thickness, rect.Max.x - perp_padding, rect.Max.y + thickness); }
+				if (a_border_n == ImGuiDir_Left) { return ImRect(rect.Min.x - a_thickness, rect.Min.y + a_perp_padding, rect.Min.x + a_thickness, rect.Max.y - a_perp_padding); }
+				if (a_border_n == ImGuiDir_Right) { return ImRect(rect.Max.x - a_thickness, rect.Min.y + a_perp_padding, rect.Max.x + a_thickness, rect.Max.y - a_perp_padding); }
+				if (a_border_n == ImGuiDir_Up) { return ImRect(rect.Min.x + a_perp_padding, rect.Min.y - a_thickness, rect.Max.x - a_perp_padding, rect.Min.y + a_thickness); }
+				if (a_border_n == ImGuiDir_Down) { return ImRect(rect.Min.x + a_perp_padding, rect.Max.y - a_thickness, rect.Max.x - a_perp_padding, rect.Max.y + a_thickness); }
 				IM_ASSERT(0);
 				return ImRect();
 			};
@@ -359,7 +355,7 @@ namespace SPA::UI {
 		for (int resize_grip_n = 0; resize_grip_n < resize_grip_count; resize_grip_n++) {
 			const SImGuiResizeGripDef& def = resize_grip_def[resize_grip_n];
 
-			const ImVec2 corner = ImLerp(a_window->Pos, { a_window->Pos.x + a_window->Size.x, a_window->Pos.y + a_window->Size.y }, def.CornerPosN);
+			const ImVec2 corner = ImLerp(a_window->Pos, { a_window->Pos.x + a_window->Size.x, a_window->Pos.y + a_window->Size.y }, def.m_corner_pos_n);
 
 			// Using the FlattenChilds button flag we make the resize button accessible even if we are hovering over a child window
 			bool hovered, held;
@@ -384,15 +380,15 @@ namespace SPA::UI {
 			else if (held) {
 				// Resize from any of the four corners
 				// We don't use an incremental MouseDelta but rather compute an absolute target size based on mouse position
-				ImVec2 clamp_min = ImVec2(def.CornerPosN.x == 1.0f ? visibility_rect.Min.x : -FLT_MAX, def.CornerPosN.y == 1.0f ? visibility_rect.Min.y : -FLT_MAX);
-				ImVec2 clamp_max = ImVec2(def.CornerPosN.x == 0.0f ? visibility_rect.Max.x : +FLT_MAX, def.CornerPosN.y == 0.0f ? visibility_rect.Max.y : +FLT_MAX);
+				ImVec2 clamp_min = ImVec2(def.m_corner_pos_n.x == 1.0f ? visibility_rect.Min.x : -FLT_MAX, def.m_corner_pos_n.y == 1.0f ? visibility_rect.Min.y : -FLT_MAX);
+				ImVec2 clamp_max = ImVec2(def.m_corner_pos_n.x == 0.0f ? visibility_rect.Max.x : +FLT_MAX, def.m_corner_pos_n.y == 0.0f ? visibility_rect.Max.y : +FLT_MAX);
 
-				const float x = g.IO.MousePos.x - g.ActiveIdClickOffset.x + ImLerp(def.m_inner_dir.x * grip_hover_outer_size, def.m_inner_dir.x * -grip_hover_inner_size, def.CornerPosN.x);
-				const float y = g.IO.MousePos.y - g.ActiveIdClickOffset.y + ImLerp(def.m_inner_dir.y * grip_hover_outer_size, def.m_inner_dir.y * -grip_hover_inner_size, def.CornerPosN.y);
+				const float x = g.IO.MousePos.x - g.ActiveIdClickOffset.x + ImLerp(def.m_inner_dir.x * grip_hover_outer_size, def.m_inner_dir.x * -grip_hover_inner_size, def.m_corner_pos_n.x);
+				const float y = g.IO.MousePos.y - g.ActiveIdClickOffset.y + ImLerp(def.m_inner_dir.y * grip_hover_outer_size, def.m_inner_dir.y * -grip_hover_inner_size, def.m_corner_pos_n.y);
 
 				ImVec2 corner_target(x, y); // Corner of the window corresponding to our corner grip
 				corner_target = ImClamp(corner_target, clamp_min, clamp_max);
-				CalcResizePosSizeFromAnyCorner(a_window, corner_target, def.CornerPosN, &pos_target, &size_target);
+				CalcResizePosSizeFromAnyCorner(a_window, corner_target, def.m_corner_pos_n, &pos_target, &size_target);
 			}
 
 			// Only lower-left grip is visible before hovering/activating
@@ -463,7 +459,7 @@ namespace SPA::UI {
 
 		// We don't clip with current window clipping rectangle as it is already set to the area below. However we clip with window full rect.
 		// We remove 1 worth of rounding to Max.x to that text in long menus and small windows don't tend to display over the lower-right rounded area, which looks particularly glitchy.
-		ImRect bar_rect = UI::RectOffset(a_bar_rectangle, 0.0f, padding.y);// window->MenuBarRect();
+		ImRect bar_rect = GUI::RectOffset(a_bar_rectangle, 0.0f, padding.y);// window->MenuBarRect();
 		ImRect clip_rect(IM_ROUND(ImMax(window->Pos.x, bar_rect.Min.x + window->WindowBorderSize + window->Pos.x - 10.0f)), IM_ROUND(bar_rect.Min.y + window->WindowBorderSize + window->Pos.y),
 			IM_ROUND(ImMax(bar_rect.Min.x + window->Pos.x, bar_rect.Max.x - ImMax(window->WindowRounding, window->WindowBorderSize))), IM_ROUND(bar_rect.Max.y + window->Pos.y));
 

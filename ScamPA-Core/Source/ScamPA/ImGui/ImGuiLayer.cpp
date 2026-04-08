@@ -7,20 +7,24 @@
 
 #include <GLFW/glfw3.h>
 
-#include <imgui.h>
+//#include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
 #include <imgui_internal.h>
 
 // Embedded images
-#include "ScamPALogo.embed"
-#include "WindowImages.embed"
+#include "../Embed/Images/ScamPALogo.embed"
+#include "../Embed/Images/WindowImages.embed"
 
-// Embedded font
-#include "Roboto-Regular.embed"
+// Embedded fonts
+#include "../Embed/Font/Roboto-Regular.embed"
+#include "../Embed/Font/Roboto-Bold.embed"
+#include "../Embed/Font/Roboto-Italic.embed"
 
 
 namespace SPA {
+	static std::unordered_map<std::string, ImFont*> s_fonts;
+
 	CImGuiLayer::CImGuiLayer() 
 		: ILayer() {
 
@@ -85,9 +89,13 @@ namespace SPA {
 		// Load default font
 		ImFontConfig font_config;
 		font_config.FontDataOwnedByAtlas = false;
+		
 		ImFont* roboto_font = io.Fonts->AddFontFromMemoryTTF((void*)g_RobotoRegular, sizeof(g_RobotoRegular), 20.0f, &font_config);
+		s_fonts["Default"] = roboto_font;
+		s_fonts["Bold"] = io.Fonts->AddFontFromMemoryTTF((void*)g_RobotoBold, sizeof(g_RobotoBold), 20.0f, &font_config);
+		s_fonts["Italic"] = io.Fonts->AddFontFromMemoryTTF((void*)g_RobotoItalic, sizeof(g_RobotoItalic), 20.0f, &font_config);
 		io.FontDefault = roboto_font;
-
+		
 		{ // Upload Fonts
 			// Use any command queue
 			VkCommandBuffer command_buffer = application.GetRenderer().GetCommandBuffer(true);
@@ -274,11 +282,11 @@ namespace SPA {
 			const ImRect menu_bar_rect = { ImGui::GetCursorPos(), { ImGui::GetContentRegionAvail().x + ImGui::GetCursorScreenPos().x, ImGui::GetFrameHeightWithSpacing() } };
 
 			ImGui::BeginGroup();
-			if (UI::BeginMenubar(menu_bar_rect)) {
+			if (GUI::BeginMenubar(menu_bar_rect)) {
 				m_menubar_callback();
 			}
 
-			UI::EndMenubar();
+			GUI::EndMenubar();
 			ImGui::EndGroup();
 
 		}
@@ -381,7 +389,7 @@ namespace SPA {
 		// Minimize Button
 
 		ImGui::Spring();
-		UI::ShiftCursorY(8.0f);
+		GUI::ShiftCursorY(8.0f);
 		{
 			const int icon_width = m_icon_minimize->GetWidth();
 			const int icon_height = m_icon_minimize->GetHeight();
@@ -390,13 +398,13 @@ namespace SPA {
 				window.Minimize();
 			}
 
-			UI::DrawButtonImage(m_icon_minimize, button_col_n, button_col_h, button_col_p, UI::RectExpanded(UI::GetItemRect(), 0.0f, -pad_y));
+			GUI::DrawButtonImage(m_icon_minimize, button_col_n, button_col_h, button_col_p, GUI::RectExpanded(GUI::GetItemRect(), 0.0f, -pad_y));
 		}
 
 
 		// Maximize Button
 		ImGui::Spring(-1.0f, 17.0f);
-		UI::ShiftCursorY(8.0f);
+		GUI::ShiftCursorY(8.0f);
 		{
 			const int icon_width = m_icon_maximize->GetWidth();
 			const int icon_height = m_icon_maximize->GetHeight();
@@ -412,12 +420,12 @@ namespace SPA {
 				}
 			}
 
-			UI::DrawButtonImage(is_maximized ? m_icon_restore : m_icon_maximize, button_col_n, button_col_h, button_col_p);
+			GUI::DrawButtonImage(is_maximized ? m_icon_restore : m_icon_maximize, button_col_n, button_col_h, button_col_p);
 		}
 
 		// Close Button
 		ImGui::Spring(-1.0f, 15.0f);
-		UI::ShiftCursorY(8.0f);
+		GUI::ShiftCursorY(8.0f);
 		{
 			const int icon_width = m_icon_close->GetWidth();
 			const int icon_height = m_icon_close->GetHeight();
@@ -425,7 +433,7 @@ namespace SPA {
 				app.Close();
 			}
 
-			UI::DrawButtonImage(m_icon_close, UI::Colors::Theme::text, UI::Colors::ColorWithMultipliedValue(UI::Colors::Theme::text, 1.4f), button_col_p);
+			GUI::DrawButtonImage(m_icon_close, UI::Colors::Theme::text, UI::Colors::ColorWithMultipliedValue(UI::Colors::Theme::text, 1.4f), button_col_p);
 		}
 
 		ImGui::Spring(-1.0f, 18.0f);
@@ -436,6 +444,14 @@ namespace SPA {
 	
 	uint32_t CImGuiLayer::GetActiveWidgetID() const {
 		return GImGui->ActiveId;
+	}
+	
+	ImFont* CImGuiLayer::GetFont(const std::string& a_font_name) {
+		if (!s_fonts.contains(a_font_name)) {
+			return nullptr;
+		}
+
+		return s_fonts.at(a_font_name);
 	}
 
 }

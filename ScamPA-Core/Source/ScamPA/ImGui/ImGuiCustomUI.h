@@ -7,7 +7,7 @@
 
 #include <memory>
 
-namespace SPA::UI {
+namespace SPA::GUI {
 
 	void ShiftCursorX(float a_distance);
 	void ShiftCursorY(float a_distance);

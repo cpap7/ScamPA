@@ -2,6 +2,7 @@
 
 #include "ScamPA/Core/Layer.h"
 #include "ScamPA/Renderer/VulkanImage.h"
+#include <imgui.h>
 
 namespace SPA {
 
@@ -37,6 +38,7 @@ namespace SPA {
 		void EndFrame();
 
 		void RenderDockspace();
+		
 
 	private: // Helpers
 		void RenderCustomMenubar();
@@ -45,6 +47,7 @@ namespace SPA {
 	public:
 		// Getters
 		uint32_t GetActiveWidgetID() const;
+		static ImFont* GetFont(const std::string& a_font_name);
 		inline bool IsBlockingEvents() const							{ return m_is_blocking_events;	}
 		inline bool IsTitlebarHovered() const							{ return m_is_titlebar_hovered;	}
 		inline const std::function<void()>& GetMenubarCallback() const	{ return m_menubar_callback;	}

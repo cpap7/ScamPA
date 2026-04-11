@@ -22,6 +22,7 @@ project "ScamPA-App"
       "%{IncludeDir.miniaudio}",
 	  "%{IncludeDir.yaml_cpp}",
 	  "%{IncludeDir.json}",
+      "%{IncludeDir.pjsip}",
 
       -- VoxBoxSDK
       "%{IncludeDir.VoxBoxCommon}",

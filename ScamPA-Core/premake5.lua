@@ -27,6 +27,7 @@ project "ScamPA-Core"
 		"%{IncludeDir.miniaudio}",
 		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.json}",
+		"%{IncludeDir.pjsip}",
 
         -- VoxBoxSDK
         "%{IncludeDir.VoxBoxCommon}",
@@ -77,12 +78,33 @@ project "ScamPA-Core"
       systemversion "latest"
       toolset "v145" -- VS 2026
       defines { "SPA_PLATFORM_WINDOWS" }
+      links { "ws2_32", "ole32", "winmm" }
 
    filter "configurations:Debug"
       defines { "SPA_DEBUG" }
       buildoptions { "/utf-8" }
       runtime "Debug"
       symbols "On"
+      links
+      {
+         "%{Library.pjsip_pjsua2_lib_debug}",
+         "%{Library.pjsip_pjsua_lib_debug}",
+         "%{Library.pjsip_ua_debug}",
+         "%{Library.pjsip_simple_debug}",
+         "%{Library.pjsip_core_debug}",
+         "%{Library.pjsip_pjmedia_codec_debug}",
+         "%{Library.pjsip_pjmedia_audiodev_debug}",
+         "%{Library.pjsip_pjmedia_debug}",
+         "%{Library.pjsip_pjnath_debug}",
+         "%{Library.pjsip_pjlib_util_debug}",
+         "%{Library.pjsip_pjlib_debug}",
+         "%{Library.pjsip_libsrtp_debug}",
+         "%{Library.pjsip_libgsmcodec_debug}",
+         "%{Library.pjsip_libilbccodec_debug}",
+         "%{Library.pjsip_libresample_debug}",
+         "%{Library.pjsip_libspeex_debug}",
+
+      }
 
    filter "configurations:Release"
       defines { "SPA_RELEASE" }
@@ -90,6 +112,25 @@ project "ScamPA-Core"
       runtime "Release"
       optimize "On"
       symbols "On"
+      links
+      {
+         "%{Library.pjsip_pjsua2_lib_release}",
+         "%{Library.pjsip_pjsua_lib_release}",
+         "%{Library.pjsip_ua_release}",
+         "%{Library.pjsip_simple_release}",
+         "%{Library.pjsip_core_release}",
+         "%{Library.pjsip_pjmedia_codec_release}",
+         "%{Library.pjsip_pjmedia_audiodev_release}",
+         "%{Library.pjsip_pjmedia_release}",
+         "%{Library.pjsip_pjnath_release}",
+         "%{Library.pjsip_pjlib_util_release}",
+         "%{Library.pjsip_pjlib_release}",
+         "%{Library.pjsip_libsrtp_release}",
+         "%{Library.pjsip_libgsmcodec_release}",
+         "%{Library.pjsip_libilbccodec_release}",
+         "%{Library.pjsip_libresample_release}",
+         "%{Library.pjsip_libspeex_release}",
+      }
 
    filter "configurations:Dist"
       defines { "SPA_DIST" }
@@ -97,3 +138,18 @@ project "ScamPA-Core"
       runtime "Release"
       optimize "On"
       symbols "Off"
+      links
+      {
+         "%{Library.pjsip_pjsua2_lib_release}",
+         "%{Library.pjsip_pjsua_lib_release}",
+         "%{Library.pjsip_ua_release}",
+         "%{Library.pjsip_simple_release}",
+         "%{Library.pjsip_core_release}",
+         "%{Library.pjsip_pjmedia_codec_release}",
+         "%{Library.pjsip_pjmedia_audiodev_release}",
+         "%{Library.pjsip_pjmedia_release}",
+         "%{Library.pjsip_pjnath_release}",
+         "%{Library.pjsip_pjlib_util_release}",
+         "%{Library.pjsip_pjlib_release}",
+         "%{Library.pjsip_libsrtp_release}",
+      }

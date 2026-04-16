@@ -1,6 +1,6 @@
 #pragma once
 
-#define SPA_BUILD_VERSION "v1.0.1a"
+#define SPA_BUILD_VERSION "v1.0.2a"
 
 // Build platform
 #if defined (SPA_PLATFORM_WINDOWS)

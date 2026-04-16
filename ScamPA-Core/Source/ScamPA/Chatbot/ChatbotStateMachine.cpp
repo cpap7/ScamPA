@@ -388,13 +388,6 @@ namespace SPA {
 			m_worker.join();
 		}
 
-		{ // Clear stale results, so UI doesn't poll old data
-			//std::lock_guard<std::mutex> lock(m_fsm_results.m_mutex);
-			//m_fsm_results.m_last_stt_transcript.clear();
-			//m_fsm_results.m_last_llm_response.clear();
-			//m_fsm_results.m_last_error.clear();
-		}
-
 		Transition(EChatbotState::Idle);
 	}
 
@@ -403,7 +396,9 @@ namespace SPA {
 
 		std::string current_state = Utilities::ChatbotStateToString(m_state);
 		std::string next_state = Utilities::ChatbotStateToString(a_next);
-		SPA_CORE_TRACE("(Chatbot FSM) Transitioning state: {0} -> {1}", current_state, next_state);
+		if (!(current_state == "IDLE")) {
+			SPA_CORE_TRACE("(Chatbot FSM) Transitioning state: {0} -> {1}", current_state, next_state);
+		}
 		m_state = a_next;
 	}
  

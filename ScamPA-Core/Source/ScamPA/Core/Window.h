@@ -81,9 +81,14 @@ namespace SPA {
 		bool ShouldClose() const;
 		void GetFramebufferSize(int* a_width, int* a_height) const;
 		
+		// Setters
 		void SetTitle(const std::string& a_title);
 		std::pair<float, float> GetWindowPosition() const;
-
+		void SetWindowIcon();
+		inline void SetEventCallback(const EventCallbackFn a_function)				{ m_window_data.m_event_callback_function = a_function;		}
+		inline void SetTitlebarHitTestCallback(const TitlebarHitTestFn a_function)	{ m_window_data.m_titlebar_hit_test_function = a_function;	}
+		//inline void SetResizeCallback(const ResizeCallbackFunction a_function)	{ m_window_data.m_resize_callback_function = a_function;	}
+		
 		// Getters
 		inline std::pair<uint32_t, uint32_t> GetSize() const	{ return { m_window_data.m_width, m_window_data.m_height }; }
 		uint32_t GetWidth() const;
@@ -92,13 +97,6 @@ namespace SPA {
 		inline const std::string& GetTitle() const				{ return m_window_data.m_title;								}
 		inline GLFWwindow* GetNativeWindow() const				{ return m_window_handle;									}
 		inline bool HasCustomTitlebar() const					{ return m_window_data.m_has_custom_titlebar;				}
-
-		// Setters
-		inline void SetEventCallback(const EventCallbackFn a_function)	{ m_window_data.m_event_callback_function = a_function; }
-		inline void SetTitlebarHitTestCallback(const TitlebarHitTestFn a_function) { m_window_data.m_titlebar_hit_test_function = a_function; }
-
-		//inline void SetResizeCallback(const ResizeCallbackFunction a_function)	{ m_window_data.m_resize_callback_function = a_function; }
-
 	};
 
 }

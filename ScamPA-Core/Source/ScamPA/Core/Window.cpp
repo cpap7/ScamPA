@@ -108,15 +108,7 @@ namespace SPA {
 		}
 
 		// Setup icon
-		GLFWimage icon;
-		int channels;
-		if (!m_window_data.m_icon_path.empty()) {
-			std::string icon_path_str = m_window_data.m_icon_path.string();
-			icon.pixels = stbi_load(icon_path_str.c_str(), &icon.width, &icon.height, &channels, 4);
-			glfwSetWindowIcon(m_window_handle, 1, &icon);
-			stbi_image_free(icon.pixels);
-		}
-
+		SetWindowIcon();
 
 		// Store window data pointer for callbacks, then set up callbacks
 		glfwSetWindowUserPointer(m_window_handle, &m_window_data);
@@ -325,8 +317,20 @@ namespace SPA {
 		glfwGetWindowPos(m_window_handle, &width, &height);
 		return { static_cast<float>(width), static_cast<float>(height) };
 	}
-	
 
+	void CWindow::SetWindowIcon() {
+		if (!m_window_data.m_icon_path.empty()) {
+			GLFWimage icon;
+			int channels;
+			std::string icon_path_string = m_window_data.m_icon_path.string();
+
+			icon.pixels = stbi_load(icon_path_string.c_str(), &icon.width, &icon.height, &channels, 4);
+
+			glfwSetWindowIcon(m_window_handle, 1, &icon);
+			stbi_image_free(icon.pixels);
+		}
+	}
+	
 	uint32_t CWindow::GetWidth() const {
 		int width, height;
 		GetFramebufferSize(&width, &height);

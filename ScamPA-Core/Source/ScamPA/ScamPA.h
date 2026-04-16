@@ -44,6 +44,12 @@
 #include <ScamPA/Chatbot/ChatbotStateMachine.h>
 #include <ScamPA/Chatbot/ChatComponents.h>
 
+// Telephony
+#include <ScamPA/Telephony/SIP/SIPEndpoint.h>
+#include <ScamPA/Telephony/SIP/SIPAudioBridge.h>
+#include <ScamPA/Telephony/SIP/SIPCall.h>
+#include <ScamPA/Telephony/SIP/SIPAccount.h>
+
 // ImGui
 #include <imgui.h>
 

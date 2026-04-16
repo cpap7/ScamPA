@@ -12,6 +12,7 @@ namespace SPA {
 			case EAudioDeviceType::Capture:		
 			case EAudioDeviceType::Loopback:	return std::make_unique<CAudioInputDevice>(a_config);
 			case EAudioDeviceType::Playback:	return std::make_unique<CAudioOutputDevice>(a_config);
+			default: break;
 		}
 		
 		SPA_CORE_ERROR("(Audio Device) Unknown device type!");

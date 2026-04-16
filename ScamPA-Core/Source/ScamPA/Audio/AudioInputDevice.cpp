@@ -120,8 +120,8 @@ namespace SPA {
 			m_device = nullptr;
 		}
 
-		std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
-		m_audio_resource.m_buffer.clear();
+		std::lock_guard<std::mutex> lock(m_audio_input.m_mutex);
+		m_audio_input.m_buffer.clear();
 	}
 
 	void CAudioInputDevice::Start() {
@@ -161,8 +161,8 @@ namespace SPA {
 
 		m_is_active = false;
 		
-		//std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
-		//m_audio_resource.m_buffer.clear();
+		//std::lock_guard<std::mutex> lock(m_audio_input.m_mutex);
+		//m_audio_input.m_buffer.clear();
 
 		SPA_CORE_INFO("(Audio Input Device) Audio capture stopped");
 	}
@@ -219,10 +219,10 @@ namespace SPA {
 	std::vector<int16_t> CAudioInputDevice::ConsumeBuffer() {
 		SPA_PROFILE_FUNCTION();
 
-		std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
+		std::lock_guard<std::mutex> lock(m_audio_input.m_mutex);
 
-		std::vector<int16_t> consumed = std::move(m_audio_resource.m_buffer);
-		m_audio_resource.m_buffer.clear();
+		std::vector<int16_t> consumed = std::move(m_audio_input.m_buffer);
+		m_audio_input.m_buffer.clear();
 
 		return consumed;
 	}
@@ -230,25 +230,25 @@ namespace SPA {
 	void CAudioInputDevice::SetCaptureCallback(const AudioCaptureCallbackFn& a_callback) {
 		SPA_PROFILE_FUNCTION();
 
-		std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
+		std::lock_guard<std::mutex> lock(m_audio_input.m_mutex);
 		m_callback = a_callback;
 	}
 
 	float CAudioInputDevice::GetRecentRMSEnergy(size_t a_sample_count) const {
 		SPA_PROFILE_FUNCTION();
 
-		std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
+		std::lock_guard<std::mutex> lock(m_audio_input.m_mutex);
 		
-		if (m_audio_resource.m_buffer.empty()) {
+		if (m_audio_input.m_buffer.empty()) {
 			return 0.0f;
 		}
 		
-		size_t count = std::min(a_sample_count, m_audio_resource.m_buffer.size());
-		size_t start = m_audio_resource.m_buffer.size() - count;
+		size_t count = std::min(a_sample_count, m_audio_input.m_buffer.size());
+		size_t start = m_audio_input.m_buffer.size() - count;
 
 		double sum_sq = 0.0;
-		for (size_t i{ start }; i < m_audio_resource.m_buffer.size(); ++i) {
-			double s = static_cast<double>(m_audio_resource.m_buffer[i]) / 32768.0;
+		for (size_t i{ start }; i < m_audio_input.m_buffer.size(); ++i) {
+			double s = static_cast<double>(m_audio_input.m_buffer[i]) / 32768.0;
 			sum_sq += s * s;
 		}
 
@@ -258,16 +258,16 @@ namespace SPA {
 	size_t CAudioInputDevice::GetBufferedSampleCount() const {
 		SPA_PROFILE_FUNCTION();
 
-		std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
-		return m_audio_resource.m_buffer.size();
+		std::lock_guard<std::mutex> lock(m_audio_input.m_mutex);
+		return m_audio_input.m_buffer.size();
 	}
 
 	void CAudioInputDevice::OnDataReceived(const int16_t* a_samples, uint32_t a_sample_count) {
 		SPA_PROFILE_FUNCTION();
 
-		{ // Separate block to prevent potential deadlock
-			std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
-			m_audio_resource.m_buffer.insert(m_audio_resource.m_buffer.end(), a_samples, a_samples + a_sample_count);
+		{
+			std::lock_guard<std::mutex> lock(m_audio_input.m_mutex);
+			m_audio_input.m_buffer.insert(m_audio_input.m_buffer.end(), a_samples, a_samples + a_sample_count);
 		}
 
 		if (m_callback) {

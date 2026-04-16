@@ -1,5 +1,6 @@
 #pragma once
 #include "AudioDevice.h"
+#include "AudioIOResources.h"
 
 #include <vector>
 #include <mutex>
@@ -7,8 +8,7 @@
 namespace SPA {
 	class CAudioOutputDevice : public IAudioDevice {
 	private:
-		SAudioResource m_audio_resource;
-		size_t m_read_cursor = 0;
+		SAudioOutput m_audio_output;
 
 	public:
 		CAudioOutputDevice(const SAudioDeviceConfig& a_config);
@@ -37,7 +37,14 @@ namespace SPA {
 		size_t GetBufferedSampleCount() const;
 
 		// Internal helper which is called from miniaudio data callback function
-		uint32_t OnDataRequested(int16_t* a_output, uint32_t a_sample_count);
+		uint32_t OnDataRequested(int16_t* a_output, uint32_t a_sample_count, uint32_t a_threshold = 48000);
+
+	private:
+		// Compacts audio once it's fully consumed
+		// or past a certain threshold (i.e., ~3s @ 16kHz)
+		// Default threshold = 48000; since 3s * 16000 = 48000
+		void CompactAudioSamples(uint32_t a_threshold = 48000); 		// Called internally via OnDataRequested()
+
 	};
 }
 

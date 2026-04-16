@@ -102,9 +102,9 @@ namespace SPA {
 			m_device = nullptr;
 		}
 		
-		std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
-		m_audio_resource.m_buffer.clear();
-		m_read_cursor = 0;
+		std::lock_guard<std::mutex> lock(m_audio_output.m_mutex);
+		m_audio_output.m_buffer.clear();
+		m_audio_output.m_read_cursor = 0;
 	}
 
 	void CAudioOutputDevice::Start() {
@@ -190,58 +190,61 @@ namespace SPA {
 	void CAudioOutputDevice::SubmitSamples(const int16_t* a_samples, uint32_t a_count) {
 		SPA_PROFILE_FUNCTION();
 
-		std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
-		m_audio_resource.m_buffer.insert(m_audio_resource.m_buffer.end(), a_samples, a_samples + a_count);
+		std::lock_guard<std::mutex> lock(m_audio_output.m_mutex);
+		m_audio_output.m_buffer.insert(m_audio_output.m_buffer.end(), a_samples, a_samples + a_count);
 	}
 
 	void CAudioOutputDevice::SubmitSamples(const std::vector<int16_t>& a_samples) {
 		SPA_PROFILE_FUNCTION();
 
-		std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
-		m_audio_resource.m_buffer.insert(m_audio_resource.m_buffer.end(), a_samples.begin(), a_samples.end());
+		std::lock_guard<std::mutex> lock(m_audio_output.m_mutex);
+		m_audio_output.m_buffer.insert(m_audio_output.m_buffer.end(), a_samples.begin(), a_samples.end());
 	}
 
 	void CAudioOutputDevice::ClearBuffer() {
 		SPA_PROFILE_FUNCTION();
 
-		std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
-		m_audio_resource.m_buffer.clear();
-		m_read_cursor = 0;
+		std::lock_guard<std::mutex> lock(m_audio_output.m_mutex);
+		m_audio_output.m_buffer.clear();
+		m_audio_output.m_read_cursor = 0;
 	}
 
 	size_t CAudioOutputDevice::GetBufferedSampleCount() const {
 		SPA_PROFILE_FUNCTION();
 
-		std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
+		std::lock_guard<std::mutex> lock(m_audio_output.m_mutex);
 
 		// Return difference of the current buffer size & read cursor
-		return (m_audio_resource.m_buffer.size() > m_read_cursor) ? (m_audio_resource.m_buffer.size() - m_read_cursor) : 0;
+		return (m_audio_output.m_buffer.size() > m_audio_output.m_read_cursor) ? (m_audio_output.m_buffer.size() - m_audio_output.m_read_cursor) : 0;
 	}
 
-	uint32_t CAudioOutputDevice::OnDataRequested(int16_t* a_output, uint32_t a_sample_count) {
+	uint32_t CAudioOutputDevice::OnDataRequested(int16_t* a_output, uint32_t a_sample_count, uint32_t a_threshold) {
 		SPA_PROFILE_FUNCTION();
 
-		std::lock_guard<std::mutex> lock(m_audio_resource.m_mutex);
+		std::lock_guard<std::mutex> lock(m_audio_output.m_mutex);
 
-		size_t available = (m_audio_resource.m_buffer.size() > m_read_cursor) ? (m_audio_resource.m_buffer.size() - m_read_cursor) : 0;
+		size_t available = (m_audio_output.m_buffer.size() > m_audio_output.m_read_cursor) ? (m_audio_output.m_buffer.size() - m_audio_output.m_read_cursor) : 0;
 		uint32_t to_copy = static_cast<uint32_t>(std::min<size_t>(available, a_sample_count));
 		
 		if (to_copy > 0) {
-			std::memcpy(a_output, m_audio_resource.m_buffer.data() + m_read_cursor, to_copy * sizeof(int16_t));
-			m_read_cursor += to_copy;
+			std::memcpy(a_output, m_audio_output.m_buffer.data() + m_audio_output.m_read_cursor, to_copy * sizeof(int16_t));
+			m_audio_output.m_read_cursor += to_copy;
 		}
 
-		// Compact once it's fully consumed
-		// or past a certain threshold (i.e., ~3s @ 16kHz)
-		if (m_read_cursor > 0 && m_read_cursor >= m_audio_resource.m_buffer.size()) {
-			m_audio_resource.m_buffer.clear();
-			m_read_cursor = 0;
-		}
-		else if (m_read_cursor > 48000) {
-			m_audio_resource.m_buffer.erase(m_audio_resource.m_buffer.begin(), m_audio_resource.m_buffer.begin() + m_read_cursor);
-			m_read_cursor = 0;
-		}
+		CompactAudioSamples(a_threshold);
 
 		return to_copy;
+	}
+
+	void CAudioOutputDevice::CompactAudioSamples(uint32_t a_threshold) {
+		
+		if (m_audio_output.m_read_cursor > 0 && m_audio_output.m_read_cursor >= m_audio_output.m_buffer.size()) {
+			m_audio_output.m_buffer.clear();
+			m_audio_output.m_read_cursor = 0;
+		}
+		else if (m_audio_output.m_read_cursor > a_threshold) { // 3 seconds * 16kHz = 48000 (default)
+			m_audio_output.m_buffer.erase(m_audio_output.m_buffer.begin(), m_audio_output.m_buffer.begin() + m_audio_output.m_read_cursor);
+			m_audio_output.m_read_cursor = 0;
+		}
 	}
 }

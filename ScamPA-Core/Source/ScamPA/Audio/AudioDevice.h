@@ -23,10 +23,6 @@ namespace SPA {
 		Default		= Capture
 	};
 
-	struct SAudioResource { // Thread-safe resource used by derived classes for capturing samples
-		mutable std::mutex m_mutex;
-		std::vector<int16_t> m_buffer;
-	};
 
 	struct SAudioDeviceInfo {
 		std::string m_name	= "";

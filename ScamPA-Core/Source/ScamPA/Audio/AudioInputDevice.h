@@ -1,5 +1,6 @@
 #pragma once
 #include "AudioDevice.h"
+#include "AudioIOResources.h"
 
 #include <vector>
 #include <mutex>
@@ -11,7 +12,7 @@ namespace SPA {
 
 	class CAudioInputDevice : public IAudioDevice {
 	private:
-		SAudioResource m_audio_resource;
+		SAudioInput m_audio_input;
 		AudioCaptureCallbackFn m_callback;		
 
 	public:

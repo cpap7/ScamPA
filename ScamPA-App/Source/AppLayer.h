@@ -1,13 +1,13 @@
 #pragma once
 #include <ScamPA/Core/Layer.h>
+
 #include <ScamPA/Chatbot/AIEngineManager.h>
-#include <ScamPA/Chatbot/ChatbotStateMachine.h>
+//#include <ScamPA/Chatbot/ChatbotStateMachine.h>
+
 
 // Panels
-#include "Panels/STTPanel.h"
-#include "Panels/LLMPanel.h"
-#include "Panels/TTSPanel.h"
-#include "Panels/ChatbotPanel.h"
+#include "Panels/Chatbot/ChatbotPanel.h"
+#include "Panels/Chatbot/SettingsPanel.h"
 #include "Panels/ConsolePanel.h"
 
 #include <memory>
@@ -15,15 +15,13 @@
 namespace SPA {
 	class CAppLayer : public ILayer {
 	private:
-		std::unique_ptr<CAIEngineManager> m_manager;
-		std::unique_ptr<CChatbotStateMachine> m_chatbot_state_machine;
+		// AI engines, which are shared across all agents
+		std::unique_ptr<CAIEngineManager> m_manager = nullptr;
 
 		// Panels
-		std::unique_ptr<CSTTPanel> m_stt_panel;
-		std::unique_ptr<CLLMPanel> m_llm_panel;
-		std::unique_ptr<CTTSPanel> m_tts_panel;
-		std::unique_ptr<CChatbotPanel> m_chatbot_panel;
-		std::unique_ptr<CConsolePanel> m_console_panel;
+		std::unique_ptr<CChatbotPanel> m_chatbot_panel = nullptr;
+		std::unique_ptr<CSettingsPanel> m_settings_panel = nullptr;
+		std::unique_ptr<CConsolePanel> m_console_panel = nullptr;
 
 	public:
 		CAppLayer();

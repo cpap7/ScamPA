@@ -24,25 +24,24 @@ namespace SPA {
 		paths.m_tts_model_onnx_path;		 //= "Assets/Models/TTS/en_US-libritts_r-medium.onnx";
 
 		// Create AI agent context & state machine
-		m_manager				= std::make_unique<CAIEngineManager>(paths);
-		m_chatbot_state_machine = std::make_unique<CChatbotStateMachine>(*m_manager);
+		m_manager					= std::make_unique<CAIEngineManager>(paths);
 
 		// Create panels
-		m_stt_panel			= std::make_unique<CSTTPanel>(*m_manager);
-		m_llm_panel			= std::make_unique<CLLMPanel>(*m_manager);
-		m_tts_panel			= std::make_unique<CTTSPanel>(*m_manager);
-		m_chatbot_panel		= std::make_unique<CChatbotPanel>(*m_chatbot_state_machine);
-		m_console_panel		= std::make_unique<CConsolePanel>();
+		m_chatbot_panel				= std::make_unique<CChatbotPanel>(*m_manager);
+		m_settings_panel			= std::make_unique<CSettingsPanel>(*m_manager);
+		m_console_panel				= std::make_unique<CConsolePanel>();
 	}
 
 	void CAppLayer::OnDetach() {
 		//SPA_PROFILE_FUNCTION();
+		
+		// Panels
 		m_console_panel.reset();
+		m_settings_panel.reset();
 		m_chatbot_panel.reset();
-		m_tts_panel.reset();
-		m_llm_panel.reset();
-		m_stt_panel.reset();
-		m_chatbot_state_machine.reset();
+		
+		
+		// AI engine manager
 		m_manager.reset();
 	}
 
@@ -53,14 +52,12 @@ namespace SPA {
 	void CAppLayer::OnUIRender() {		
 		//ImGui::ShowDemoWindow();
 
-		m_stt_panel->OnUIRender();
-		m_llm_panel->OnUIRender();
-		m_tts_panel->OnUIRender();
 		m_chatbot_panel->OnUIRender();
+		m_settings_panel->OnUIRender();
 		m_console_panel->OnUIRender();
 	}
 
 	void CAppLayer::OnEvent(IEvent& a_event) {
-
+		// TODO
 	}
 }

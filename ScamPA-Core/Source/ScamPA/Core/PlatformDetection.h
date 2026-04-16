@@ -4,8 +4,11 @@
 #ifdef _WIN32 // Windows x86
 	#ifdef _WIN64 // Windows x86-x64
 		#define SPA_PLATFORM_WINDOWS
+		#define WIN32_LEAN_AND_MEAN
 		#include <Windows.h>
 		#include <commdlg.h>
+		#include <WinSock2.h>
+		#include <WS2tcpip.h>
 	#else
 		/* Windows x86 */
 		#error "ScamPA is not supported on Windows x86 (32-bit) builds!"

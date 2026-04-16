@@ -1,9 +1,9 @@
-#include "STTPanel.h"
-#include "../GUIUtilities.h"
+#include "STTTab.h"
+#include "../../GUIUtilities.h"
 
 #include <ScamPA/Core/Logger.h>
 #include <ScamPA/Core/Application.h>
-#include <ScamPA/Audio/AudioInputDevice.h>
+//#include <ScamPA/Audio/AudioInputDevice.h>
 
 #include <imgui.h>
 
@@ -22,16 +22,16 @@ namespace SPA {
 
 	}
 
-	CSTTPanel::CSTTPanel(CAIEngineManager& a_manager)
+	CSTTTab::CSTTTab(CAIEngineManager& a_manager)
 		: m_manager(a_manager) {
 		OnInit();
 	}
 
-	CSTTPanel::~CSTTPanel() {
+	CSTTTab::~CSTTTab() {
 		OnShutdown();
 	}
 
-	void CSTTPanel::OnInit() {
+	void CSTTTab::OnInit() {
 		//SPA_PROFILE_FUNCTION();
 
 		SAudioDeviceConfig config;
@@ -45,16 +45,14 @@ namespace SPA {
 		RefreshAudioDeviceList();
 	}
 
-	void CSTTPanel::OnShutdown() {
+	void CSTTTab::OnShutdown() {
 		//SPA_PROFILE_FUNCTION();
 
 		m_audio_input_device.reset();
 	}
 
-	void CSTTPanel::OnUIRender() { 
+	void CSTTTab::OnTabRender() {
 		//SPA_PROFILE_FUNCTION();
-
-		ImGui::Begin("Speech-To-Text Settings");
 
 		auto* stt_engine = m_manager.GetSTTEngine();
 		if (!stt_engine) {
@@ -62,8 +60,6 @@ namespace SPA {
 			ImGui::Separator();
 			
 			DisplayFilePathSettings();
-
-			ImGui::End();
 			return;
 		}
 		ImGui::TextColored(ImVec4(0, 1, 0, 1), "STT Engine Loaded");
@@ -73,10 +69,9 @@ namespace SPA {
 		DisplayAudioDeviceSettings();
 		DisplayDebugUtilities();
 
-		ImGui::End();
 	}
 	
-	void CSTTPanel::DisplayFilePathSettings() {
+	void CSTTTab::DisplayFilePathSettings() {
 		//SPA_PROFILE_FUNCTION();
 
 		if (GUI::BeginTreeNode("STT Model Settings")) {
@@ -95,7 +90,7 @@ namespace SPA {
 		}
 	}
 	
-	void CSTTPanel::DisplayAudioDeviceSettings() {
+	void CSTTTab::DisplayAudioDeviceSettings() {
 		//SPA_PROFILE_FUNCTION();
 		if (GUI::BeginTreeNode("STT Audio Input Device Settings", false)) {
 			auto* input_device = static_cast<CAudioInputDevice*>(m_audio_input_device.get());
@@ -219,7 +214,7 @@ namespace SPA {
 		}
 	}
 
-	void CSTTPanel::RefreshAudioDeviceList() {
+	void CSTTTab::RefreshAudioDeviceList() {
 		//SPA_PROFILE_FUNCTION();
 
 		if (m_audio_input_device) {
@@ -236,7 +231,7 @@ namespace SPA {
 		}
 	}
 
-	void CSTTPanel::ReloadAudioDevice() {
+	void CSTTTab::ReloadAudioDevice() {
 		//SPA_PROFILE_FUNCTION();
 
 		m_audio_input_device.reset();
@@ -250,7 +245,7 @@ namespace SPA {
 		m_audio_input_device = IAudioDevice::Create(config);
 	}
 
-	void CSTTPanel::DisplayDebugUtilities() {
+	void CSTTTab::DisplayDebugUtilities() {
 		//SPA_PROFILE_FUNCTION();
 
 		if (GUI::BeginTreeNode("STT Debug Utilities", false)) {
@@ -314,7 +309,7 @@ namespace SPA {
 		}
 	}
 
-	void CSTTPanel::DrainSamples(CAudioInputDevice* a_input_device) {
+	void CSTTTab::DrainSamples(CAudioInputDevice* a_input_device) {
 		// Drain samples & convert to float for whisper.cpp
 		std::vector<int16_t> raw_samples = a_input_device->ConsumeBuffer();
 		
@@ -329,7 +324,7 @@ namespace SPA {
 		}
 	}
 
-	void CSTTPanel::Reinit() {
+	void CSTTTab::Reinit() {
 		//SPA_PROFILE_FUNCTION();
 
 		OnShutdown();

@@ -1,5 +1,5 @@
-#include "TTSPanel.h"
-#include "../GUIUtilities.h"
+#include "TTSTab.h"
+#include "../../GUIUtilities.h"
 
 #include <ScamPA/Core/Logger.h>
 #include <ScamPA/Core/Application.h>
@@ -8,16 +8,16 @@
 #include <imgui.h>
 
 namespace SPA {
-	CTTSPanel::CTTSPanel(CAIEngineManager& a_manager) 
+	CTTSTab::CTTSTab(CAIEngineManager& a_manager)
 		: m_manager(a_manager) {
 		OnInit();
 	}
 
-	CTTSPanel::~CTTSPanel() {
+	CTTSTab::~CTTSTab() {
 		OnShutdown();
 	}
 
-	void CTTSPanel::OnInit() {
+	void CTTSTab::OnInit() {
 		SAudioDeviceConfig config;
 		config.m_sample_rate = 22050; // piper default
 		config.m_channels = 1;
@@ -29,13 +29,11 @@ namespace SPA {
 		RefreshAudioDeviceList();
 	}
 
-	void CTTSPanel::OnShutdown() {
+	void CTTSTab::OnShutdown() {
 		m_audio_output_device.reset();
 	}
 
-	void CTTSPanel::OnUIRender() { 
-
-		ImGui::Begin("Text-To-Speech Settings");
+	void CTTSTab::OnTabRender() {
 		auto* tts_engine = m_manager.GetTTSEngine();
 
 		if (!tts_engine) {
@@ -43,8 +41,6 @@ namespace SPA {
 			ImGui::Separator();
 
 			DisplayFilePathSettings();
-			
-			ImGui::End();
 			return;
 		}
 		ImGui::TextColored(ImVec4(0, 1, 0, 1), "TTS Engine Loaded");
@@ -55,10 +51,9 @@ namespace SPA {
 		DisplayAudioDeviceSettings();
 		DisplayDebugUtilities();
 		
-		ImGui::End();
 	}
 
-	void CTTSPanel::DisplayFilePathSettings() {
+	void CTTSTab::DisplayFilePathSettings() {
 		if (GUI::BeginTreeNode("TTS Model Settings", false)) {
 			ImGui::TextDisabled("Model Path ");
 			ImGui::SameLine();
@@ -90,7 +85,7 @@ namespace SPA {
 		}
 	}
 
-	void CTTSPanel::DisplayAudioDeviceSettings() {
+	void CTTSTab::DisplayAudioDeviceSettings() {
 		if (GUI::BeginTreeNode("TTS Audio Output Device Settings", false)) {
 			{ // Output device selection
 				const char* preview = "System Default";
@@ -146,7 +141,7 @@ namespace SPA {
 		
 	}
 
-	void CTTSPanel::RefreshAudioDeviceList() {
+	void CTTSTab::RefreshAudioDeviceList() {
 		if (m_audio_output_device) {
 			m_device_settings.m_device_list = m_audio_output_device->GetDeviceList();
 			//m_device_settings.m_selected_device_index = -1; // Reset to system default on refresh
@@ -161,7 +156,7 @@ namespace SPA {
 		}
 	}
 
-	void CTTSPanel::DisplayVoiceSettings() {
+	void CTTSTab::DisplayVoiceSettings() {
 		if (GUI::BeginTreeNode("TTS Voice Settings", false)) {
 			if (ImGui::SliderFloat("Verbal Delay", &m_verbal_delay, 0.5f, 2.0f, "%.2f")) {
 				m_manager.GetTTSEngine()->SetSpeed(m_verbal_delay);
@@ -173,7 +168,7 @@ namespace SPA {
 		}
 	}
 
-	void CTTSPanel::DisplayDebugUtilities() {
+	void CTTSTab::DisplayDebugUtilities() {
 		if (GUI::BeginTreeNode("TTS Debug Utilities", false)) {
 			ImGui::InputTextMultiline("##tts_text", m_text_buffer, sizeof(m_text_buffer), ImVec2(-1, 100));
 			if (ImGui::Button("Synthesize Audio") && m_text_buffer[0] != '\0') {

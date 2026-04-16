@@ -1,5 +1,5 @@
-#include "LLMPanel.h"
-#include "../GUIUtilities.h"
+#include "LLMTab.h"
+#include "../../GUIUtilities.h"
 
 #include <ScamPA/Core/Application.h>
 #include <ScamPA/Chatbot/ChatbotSerializer.h>
@@ -7,31 +7,28 @@
 #include <imgui.h>
 
 namespace SPA {
-	CLLMPanel::CLLMPanel(CAIEngineManager& a_manager)
+	CLLMTab::CLLMTab(CAIEngineManager& a_manager)
 		: m_manager(a_manager) {
 
 	}
 
-	void CLLMPanel::OnInit() {
+	void CLLMTab::OnInit() {
 
 	}
 
-	void CLLMPanel::OnShutdown() {
+	void CLLMTab::OnShutdown() {
 
 	}
 
-	void CLLMPanel::OnUIRender() {
+	void CLLMTab::OnTabRender() {
 		//SPA_PROFILE_FUNCTION();
 
-		ImGui::Begin("LLM Settings");
 		auto* llm_engine = m_manager.GetLLMEngine();
 		if (!llm_engine) {
 			ImGui::TextColored(ImVec4(1, 1, 0, 1), "LLM Engine Not Loaded");
 			ImGui::Separator();
 			
 			DisplayFilePathSettings();
-
-			ImGui::End();
 			return;
 		}
 
@@ -41,12 +38,9 @@ namespace SPA {
 		DisplayFilePathSettings();
 		DisplaySamplerSettings();
 		DisplayContextSettings();
-		
-
-		ImGui::End();
 	}
 
-	void CLLMPanel::DisplayFilePathSettings() {
+	void CLLMTab::DisplayFilePathSettings() {
 		//SPA_PROFILE_FUNCTION();
 
 		if (GUI::BeginTreeNode("LLM Model Settings", false)) {
@@ -64,7 +58,7 @@ namespace SPA {
 		}
 	}
 
-	void CLLMPanel::DisplaySamplerSettings() { // TODO: About modals for each setting
+	void CLLMTab::DisplaySamplerSettings() { // TODO: About modals for each setting
 		//SPA_PROFILE_FUNCTION();
 
 		if (GUI::BeginTreeNode("LLM Sampler Settings", false)) {
@@ -125,7 +119,7 @@ namespace SPA {
 		
 	}
 
-	void CLLMPanel::DisplayContextSettings() {
+	void CLLMTab::DisplayContextSettings() {
 		//SPA_PROFILE_FUNCTION();
 		if (GUI::BeginTreeNode("LLM Context Settings", false)) {
 
@@ -176,7 +170,7 @@ namespace SPA {
 		}
 	}
 
-	void CLLMPanel::SaveContextSnapshot() {
+	void CLLMTab::SaveContextSnapshot() {
 		//SPA_PROFILE_FUNCTION();
 
 		std::string file_path = CApplication::GetApplicationInstance().SaveFile("BIN File (*.bin)\0*.bin\0", "bin");
@@ -187,7 +181,7 @@ namespace SPA {
 		}
 	}
 
-	void CLLMPanel::LoadContextSnapshot() {
+	void CLLMTab::LoadContextSnapshot() {
 		//SPA_PROFILE_FUNCTION();
 
 		std::string file_path = CApplication::GetApplicationInstance().OpenFile("BIN File (*.bin)\0*.bin\0");

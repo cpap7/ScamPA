@@ -1,22 +1,35 @@
 #pragma once
-#include <ScamPA/Core/Panel.h>
-#include <ScamPA/Audio/DeviceSettings.h>
+#include <ScamPA/Core/GUIInterfaces.h>
+
+#include <ScamPA/Audio/AudioDeviceSettings.h>
 #include <ScamPA/Audio/AudioInputDevice.h>
+
 #include <ScamPA/Chatbot/AIEngineManager.h>
+
 #include <ScamPA/Utilities/Timer.h>
 
 #include <string>
 #include <memory>
 
 namespace SPA {
+	// Speech-to-text/audio-speech-recognition tab
 
-	class CSTTPanel : public IPanel {
+	class CSTTTab : public ITab {
 	private:
+		// Interface-related
+		std::string m_name = "STT Settings";
+
+		// Output STT
 		std::string m_last_transcript;
+		
+		// Audio config
 		SAudioDeviceSettings m_device_settings;
 
+		// STT/LLM/TTS manager
 		CAIEngineManager& m_manager;
-		std::unique_ptr<IAudioDevice> m_audio_input_device;
+		
+		// Audio-device related
+		std::unique_ptr<IAudioDevice> m_audio_input_device = nullptr;
 		
 		CTimer m_silence_timer;
 		float m_silence_threshold	= 0.005f; // RMS energy floor
@@ -27,12 +40,14 @@ namespace SPA {
 		EAudioDeviceType m_selected_device_type = EAudioDeviceType::Loopback;
 
 	public:
-		explicit CSTTPanel(CAIEngineManager& a_manager);
-		~CSTTPanel();
+		explicit CSTTTab(CAIEngineManager& a_manager);
+		~CSTTTab();
 		
+		inline virtual const std::string& GetTabName() const override { return m_name; }
+
 		virtual void OnInit() override;
 		virtual void OnShutdown() override;
-		virtual void OnUIRender() override;
+		virtual void OnTabRender() override;
 
 	private:
 		void DisplayFilePathSettings();

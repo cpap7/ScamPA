@@ -60,8 +60,8 @@ namespace SPA {
 		YAML::Emitter yaml_output;
 		yaml_output << YAML::BeginMap; // Start
 		yaml_output << YAML::Key << "Session" << YAML::Value << YAML::BeginMap; // Session
-		yaml_output << YAML::Key << "SessionUUID64" << YAML::Value << static_cast<uint64_t>(a_session.m_uuid);
-		yaml_output << YAML::Key << "SessionName" << YAML::Value << a_session.m_name;
+		yaml_output << YAML::Key << "AgentUUID64" << YAML::Value << static_cast<uint64_t>(a_session.m_agent_uuid);
+		yaml_output << YAML::Key << "AgentName" << YAML::Value << a_session.m_agent_name;
 		
 		yaml_output << YAML::Key << "Exchanges" << YAML::Value << YAML::BeginSeq; // Exchanges
 		for (const auto& chat_exchange : a_session.m_exchanges) {
@@ -86,8 +86,8 @@ namespace SPA {
 		SChatSession chat_session;
 		YAML::Node root = YAML::LoadFile(a_file_path);
 		if (auto session_node = root["Session"]) {
-			chat_session.m_uuid = CUUID64(session_node["SessionUUID64"].as<uint64_t>());
-			chat_session.m_name = session_node["SessionName"].as<std::string>();
+			chat_session.m_agent_uuid = CUUID64(session_node["AgentUUID64"].as<uint64_t>());
+			chat_session.m_agent_name = session_node["AgentName"].as<std::string>();
 			
 			if (auto exchanges_node = session_node["Exchanges"]) {
 				for (const auto& chat_exchange : exchanges_node) {
@@ -111,8 +111,8 @@ namespace SPA {
 
 		nlohmann::json json_output;
 		auto& session_node = json_output["Session"];
-		session_node["SessionUUID64"] = static_cast<uint64_t>(a_session.m_uuid);
-		session_node["SessionName"] = a_session.m_name;
+		session_node["AgentUUID64"] = static_cast<uint64_t>(a_session.m_agent_uuid);
+		session_node["AgentName"] = a_session.m_agent_name;
 
 		auto& chat_exchanges = session_node["Exchanges"]; // Exchanges
 		for (const auto& exchange : a_session.m_exchanges) {
@@ -144,8 +144,8 @@ namespace SPA {
 		if (json_input.contains("Session")) {
 			auto& session_node = json_input["Session"];
 			
-			chat_session.m_uuid = CUUID64(session_node["SessionUUID64"].get<uint64_t>());
-			chat_session.m_name = session_node["SessionName"].get<std::string>();
+			chat_session.m_agent_uuid = CUUID64(session_node["AgentUUID64"].get<uint64_t>());
+			chat_session.m_agent_name = session_node["AgentName"].get<std::string>();
 			
 			if (session_node.contains("Exchanges")) {
 				for (const auto& chat_entry : session_node["Exchanges"]) {

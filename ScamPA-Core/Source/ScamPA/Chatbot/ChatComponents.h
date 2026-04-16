@@ -6,13 +6,11 @@
 #include <string>
 
 namespace SPA {
-	// Chatlog/string-atlas alias
-	//using ChatLog = std::vector<std::pair<std::string, std::string>>;
 
 	struct SChatExchange { // Single prompt/response exchange within a session
 		std::string m_prompt;
 		std::string m_response;
-		CUUID32 m_uuid; // Auto generated on construction
+		CUUID32 m_uuid; // Auto generated upon construction
 		float m_stt_confidence = 0.0f;
 
 		SChatExchange() = default;
@@ -32,15 +30,15 @@ namespace SPA {
 	};
 
 	struct SChatSession { // Manages ordered list of exchanges
-		std::string m_name;
+		std::string m_agent_name;
 		std::vector<SChatExchange> m_exchanges;
-		CUUID64 m_uuid; // Auto generated on construction
+		CUUID64 m_agent_uuid; // Auto generated upon construction
 		
 		SChatSession() = default;		
 		SChatSession(const std::string& a_name, const std::vector<SChatExchange>& a_exchanges) 
-			: m_name(a_name), m_exchanges(a_exchanges) { }
+			: m_agent_name(a_name), m_exchanges(a_exchanges) { }
 		SChatSession(const std::string& a_name, const std::vector<SChatExchange>& a_exchanges, const CUUID64& a_uuid) 
-			: m_name(a_name), m_exchanges(a_exchanges), m_uuid(a_uuid) { }
+			: m_agent_name(a_name), m_exchanges(a_exchanges), m_agent_uuid(a_uuid) { }
 		
 		~SChatSession() = default;
 		SChatSession(const SChatSession& a_other) = default;
@@ -55,8 +53,4 @@ namespace SPA {
 			m_exchanges.emplace_back(a_prompt, a_response, a_stt_confidence);
 		}
 	};
-
-	
-
-	
 }

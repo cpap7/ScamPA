@@ -102,7 +102,7 @@ namespace SPA {
 
 		// Setters
 		void SetMenubarCallback(const std::function<void()>& a_menubar_callback);
-		
+
 	private:
 		// Helpers
 		void RenderImGui();

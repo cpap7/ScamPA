@@ -43,7 +43,7 @@ namespace SPA {
 		void SubmitResourceFree(uint32_t a_frame_index, std::function<void()>&& a_function);
 		void ProcessResourceFreeQueue(uint32_t a_frame_index);
 
-		// Getters for Vulkan handles
+		// Accessors for members & Vulkan-specific handles
 		inline SConfig GetConfig() const					{ return m_config;			}
 		inline VkAllocationCallbacks* GetAllocator() const	{ return m_allocator;		}
 		inline VkInstance GetInstance() const				{ return m_instance;		}
